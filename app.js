@@ -345,12 +345,6 @@ class Asteriods {
         context.arc(this.x, this.y, 50, 0, Math.PI * 2, false)
 
         context.fill()
-
-        // context.translate(this.x , this.y)
-
-        // context.fill(this.path)
-
-        // context.resetTransform()
     }
 
     setVelocity = () => {
@@ -419,7 +413,6 @@ class Star {
     }
 }
 
-// Projectile
 class Projectile {
     constructor(x, y, radius, color, velocity, enemy, poison) {
         this.x = x
@@ -581,8 +574,6 @@ class PowerUp extends Projectile {
 
         var coordinates = this.generateCoordinates(x + this.radius, y + this.radius, 6, this.radius, this.rotation);
 
-        // context.save()
-
         context.strokeStyle = "black";
 
         context.beginPath();
@@ -618,8 +609,6 @@ class PowerUp extends Projectile {
         context.fill(this.path)
 
         context.resetTransform()
-
-        // context.restore()
     }
 
     generateCoordinates = (centerX, centerY, numberOfSides, radius, rotation) => {
@@ -655,7 +644,6 @@ class Turret {
     }
 }
 
-// Classes end
 playerProgress = new PlayerProgress(30, 40, "Player 1")
 
 player = new Tank(250, 400, 7, playerProgress)
@@ -672,6 +660,7 @@ setTimeout(() => {
 
         stars.push(new Star(x, y, Math.random() * 3, colors[Math.floor(Math.random() * colors.length)]))
 
+        stars[i].draw()
     }
 }, 0)
 
@@ -755,7 +744,7 @@ const spawnPowerUps = () => {
 
         spawnPowerUps()
 
-    }, Math.random() * (500 - 1000) + 1000)
+    }, Math.random() * (10000 - 50000) + 50000)
 }
 
 
@@ -830,6 +819,7 @@ const createExplosive = (x , y) => {
 // Game loop
 
 const animate = () => {
+    
     requestAnimationFrame(animate)
 
     player.x = player.newValues(player.x, 65, 68)
@@ -873,14 +863,16 @@ const animate = () => {
 
     }
 
-    // playerProgress.draw()
-
     for(let asteriod of asteriods){
         asteriod.draw()
 
         if(asteriod.reqAnimation){
             asteriod.update()
         }
+    }
+
+    for(let star of stars){
+        star.draw()
     }
 
     rotation += 0.001
@@ -890,35 +882,11 @@ const animate = () => {
 
 var progressiveId = null
 
-// const progressiveChange = (object , property , finalValue , reverse) => {
-//     progressiveId = setInterval((object , property , finalValue , reverse) => {
-//         if((object.property > finalValue && !reverse) || (object.property < finalValue && reverse)){
-//             object.property = finalValue
-
-//             clearInterval(progressiveId)
-
-//             return
-//         }
-
-//         if(reverse){
-//             object.property -= 1
-//         } else {
-//             object.property += 1
-//         }
-
-
-//     } , 5 , object , property , finalValue , reverse)
-// }
 var xInterval, yInterval
-
-// setInterval(() => {
-    // })
 
 var intervalId = 0
 
 const controller = new CanvasBorderShadowController()
-
-// animate()
 
 var isMouseDown = false
 
@@ -981,12 +949,12 @@ addEventListener("keydown", (e) => {
     
     // } , 20)
     
-    addEventListener("keyup", (e) => {
-        player.keyActivated[e.which] = false
-        
-        movingKeysActivated[e.which] = false
-    })
+addEventListener("keyup", (e) => {
+    player.keyActivated[e.which] = false
     
+    movingKeysActivated[e.which] = false
+})
+
 addEventListener("mousedown", () => {
     isMouseDown = true
 
@@ -1009,29 +977,17 @@ addEventListener("mousedown", () => {
 
 })
 
-const playerMovement = () => {
-    requestAnimationFrame(playerMovement)
 
-
-}
-
-
-
-// playerMovement()
 const init = () => {
     projectiles = []
     powerups = []
-    names = ["poison" , "push" , "rocket"]
     colors = ["8FBCBB", "#88C0D0", "#81A1C1", "#5E81AC", "#BF616A"]
-    // stars = []
     mousePos = { x: null, y: null }
     superBalls = { speed: 7, color: "white" }
     powerUpsUnlocked = { "poison": false, "rocket": false, "decrease": false }
     inited = true
 
     animate()
-
-    playerMovement()
 
     spawnPowerUps()
 
