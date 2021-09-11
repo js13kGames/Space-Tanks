@@ -28,14 +28,18 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, color, top_
 
 scrollTo(0, 0)
 
+var powerUpCreated = false
+
 var canvas = document.querySelector("canvas")
 var context = canvas.getContext("2d")
 
-canvas.width = innerWidth * 2
+canvas.width = innerWidth
 
 const explosives = []
 
-canvas.height = innerHeight * 2
+canvas.height = innerHeight
+
+var progressBar = null
 
 const powerEl = document.querySelector(".activate")
 
@@ -45,49 +49,51 @@ const scrollPos = { x: 0, y: 0 }
 
 const movingKeysActivated = {}
 
-var projectiles, powerups, names, colors = ["8FBCBB", "#88C0D0", "#81A1C1", "#5E81AC", "#BF616A"], stars, mousePos = { x: null, y: null }, superBalls, powerUpsUnlocked, inited = false, player, playerProgress, compTank, compProgress
+var projectiles, powerups, names = ["decrease"], colors = ["8FBCBB", "#88C0D0", "#81A1C1", "#5E81AC", "#BF616A"], stars, mousePos = { x: null, y: null }, superBalls, powerUpsUnlocked = {}, inited = false
+
 
 class CanvasBorderShadowController {
     constructor() {
         this.shadow = document.querySelector(".box-shadow")
-
+        
         this.shadow.style.width = innerWidth + 'px'
-
+        
         this.shadow.style.height = innerHeight + 'px'
-
+        
         this.shadow.style.opacity = 0
-
+        
         this.color = "rgba(191, 97, 106 , 0.9)"
-
-
+        
+        
     }
-
+    
     show = (reverse, called = true) => {
-
+        
         if (!reverse) {
             try {
                 this.shadow.classList.remove('unfade')
             } catch (err) { }
-
+            
             this.shadow.classList.add('fade')
-
+            
             setTimeout(() => {
                 this.shadow.style.opacity = 0
             }, 500)
-
+            
             if (called) {
                 setTimeout(() => {
                     if (this.shadow.style.opacity == 0) {
                         return
                     }
-
+                    
                     this.show(true, false)
                 }, 4000)
             }
-
-
+            
+            
         } else {
             try {
+                
                 this.shadow.classList.remove('fade')
             } catch (err) { }
 
@@ -115,10 +121,11 @@ class CanvasBorderShadowController {
 }
 
 class Progress {
-    constructor(time) {
+    constructor(time , callback) {
         this.time = time
         this.velocity = innerWidth / time
         this.width = innerWidth
+        this.callback = callback
     }
 
     draw = () => {
@@ -127,11 +134,14 @@ class Progress {
         context.fillRect(0, innerHeight - 10, this.width, 10)
 
         this.width -= this.velocity
+
+        if(this.width <= 0){
+            progressBar = null
+
+            this.callback()
+        }
     }
 }
-
-const progress = new Progress(500)
-
 
 class PlayerProgress {
     constructor(x, y, name) {
@@ -147,6 +157,8 @@ class PlayerProgress {
 
     draw = () => {
         this.innerBarWidth = 0.03 * this.playerHealth
+
+        context.fillStyle = "#D8DEE9"
 
         context.font = "20px comfortaa"
 
@@ -171,14 +183,19 @@ class PlayerProgress {
 }
 
 class Tank {
-    constructor(x, y, speed = 1, healthBar) {
+    constructor(x, y, speed, healthBar) {
         this.x = x
+
         this.y = y
+        
         this.width = 100
-        this.healthBar = healthBar
+        
         this.height = 100
+        
+        this.healthBar = healthBar
+        
         this.keyActivated = {}
-        this.alphaValue = 1
+        
         this.mapStyles = {
             1: function (x, y, width, height, color) { context.roundRect(x, y, width, height, color, 0, 0, 0, 0) },
             2: function (x, y, width, height, color) { context.roundRect(x, y, width, height, color, 10, 0, 0, 0) },
@@ -189,9 +206,7 @@ class Tank {
 
         this.pixelMap = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 4, 1],
-            [7, 7, 7, 7, 7, 7, 7, 7, 5, 5, 5, 5, 5],
             [17, 3, 3, 3, 3, 3, 1, 1],
-            [7, 7, 7, 7, 7, 7, 7, 7, 5, 5, 5, 5, 5],
             [1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 4],
             [1, 2, 3, 4, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 8],
             [1, 3, 1, 3, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1],
@@ -206,6 +221,7 @@ class Tank {
     }
 
     draw = () => {
+        this.turret.setRotation()
 
         this.turret.draw()
 
@@ -215,11 +231,22 @@ class Tank {
 
         this.turret.y = this.y + 10
 
+        this.turret.updatePos()
+
         var width = 9
 
         var x = this.x
 
         var y = this.y
+
+        var widthPerPixel = 10
+
+        var widthPerPixel = 10
+
+
+        context.save()
+
+        context.beginPath()
 
         for (let i = 0; i < this.pixelMap.length; i++) {
 
@@ -357,7 +384,9 @@ class Asteriods {
     }
 
     update = () => {
-        if(this.x >= this.enemy.x || this.y >= this.enemy.y){
+        console.log(this.x >= this.enemy.x , this.y >= this.enemy.y , this.x <= this.enemy.x , this.y <= this.enemy.y)
+
+        if(this.x >= this.enemy.x && this.y >= this.enemy.y && this.x <= this.enemy.x && this.y <= this.enemy.y){
             this.reqAnimation = false
 
             createExplosive(this.x + 25, this.y + 25)
@@ -491,7 +520,11 @@ class PowerUp extends Projectile {
         if (hypot < 70) {
             powerups.splice(powerups.indexOf(this), 1)
 
+            powerUpCreated = true
+
             powerUpsUnlocked[this.name] = true
+
+            progressBar = new Progress(500 , () => {powerUpCreated = false;})
 
             this.caughtBy = player
 
@@ -515,12 +548,16 @@ class PowerUp extends Projectile {
 
             this.callback()
 
+            powerUpCreated = true
+
             return
         }
     }
 
-    init = (name, callback, forTank) => {
+    init = (name, callback, forTank , time) => {
         this.name = name
+
+        this.time = time
 
         this.callback = callback
 
@@ -635,25 +672,57 @@ class Turret {
     constructor(x, y) {
         this.x = x
         this.y = y
+        this.openingPos = {x: x , y: y}
+        this.rotation = 50
     }
 
     draw = () => {
-        context.fillStyle = "#D8DEE9"
+        context.save();
 
-        context.fillRect(this.x, this.y, 80, 10)
+        context.beginPath();
+        
+        context.translate(this.x + 80, this.y + 5);
+
+        context.rotate(this.rotation * Math.PI / 180);
+
+        context.rect(- 75 , -5 , 80 , 10);
+
+        context.fillStyle = "white";
+
+        context.fill();
+
+        context.restore();
     }
+
+    setRotation = () => {
+        const angle = Math.atan2(this.y - mousePos.y , this.x - mousePos.x) * 180 / Math.PI
+
+        this.rotation = angle
+    }
+
+    updatePos = () => {
+        const newPoints = this.getRotatedPoints(this.x + 80 , this.y + 5, this.rotation, -40, 5);
+
+        this.openingPos.x = newPoints.x
+
+        this.openingPos.y = newPoints.y
+    }
+
+    getRotatedPoints = (X, Y, R, Xos, Yos) => {
+        var rotatedX = X + (Xos  * Math.cos(this.radians(R))) - (Yos * Math.sin(this.radians(R)))
+        var rotatedY = Y + (Xos  * Math.sin(this.radians(R))) + (Yos * Math.cos(this.radians(R)))
+
+        return {x: rotatedX , y: rotatedY}
+    }
+
+    radians = (deg) => {
+        return deg * 0.0174533
+    } 
 }
 
-playerProgress = new PlayerProgress(30, 40, "Player 1")
-
-player = new Tank(250, 400, 7, playerProgress)
-
-compProgress = new PlayerProgress(innerWidth - 350, 50, "Computer 1")
-
-compTank = new Tank(1400, 400, 7, compProgress)
 
 setTimeout(() => {
-    for (let i = 0; i < 400; i++) {
+    for (let i = 0; i < 200; i++) {
         const x = (Math.random() * (canvas.width + 1000)) - (canvas.width + 1000) / 2;
 
         const y = (Math.random() * (canvas.width + 1000)) - (canvas.width + 1000) / 2;
@@ -689,6 +758,12 @@ const decreaseHealth = (powerup) => {
 
 const spawnPowerUps = () => {
     setTimeout(() => {
+        if(powerUpCreated){
+            spawnPowerUps()
+
+            return
+        }
+
         const radius = 29
 
         let x, y
@@ -744,7 +819,7 @@ const spawnPowerUps = () => {
 
         spawnPowerUps()
 
-    }, Math.random() * (10000 - 50000) + 50000)
+    }, Math.random() * (5000 - 10000) + 10000)
 }
 
 
@@ -763,10 +838,18 @@ const spawnPowerUps = () => {
 
 // } , 10)
 
+var playerProgress = new PlayerProgress(30, 40, "Player 1")
+                
+var player = new Tank(250, 400, 7, playerProgress)
+
+var compProgress = new PlayerProgress(innerWidth - 350, 50, "Computer 1")
+
+var compTank = new Tank(1400, 400, 7, compProgress)
+
 setInterval(() => {
     if (!inited) return
 
-    const angle = Math.atan2(player.y + 50 - compTank.turret.y, player.x + 50 - compTank.turret.x)
+    const angle = Math.atan2(player.y + 50 - compTank.turret.openingPos.y, player.x + 50 - compTank.turret.openingPos.y)
 
     const velocity = {
         x: Math.cos(angle) * 7,
@@ -774,9 +857,9 @@ setInterval(() => {
     }
 
     if (powerUpsUnlocked["poison"]) {
-        projectiles.push(new Projectile(compTank.turret.x, compTank.turret.y, 5, "#A3BE8C", velocity, player))
+        projectiles.push(new Projectile(compTank.turret.openingPos.x, compTank.turret.openingPos.y, 5, "#A3BE8C", velocity, player))
     } else {
-        projectiles.push(new Projectile(compTank.turret.x, compTank.turret.y, 5, "#BF616A", velocity, player))
+        projectiles.push(new Projectile(compTank.turret.openingPos.x, compTank.turret.openingPos.y, 5, "#BF616A", velocity, player))
     }
 
 }, 400)
@@ -786,6 +869,12 @@ addEventListener("resize", () => {
     canvas.width = innerWidth
 
     canvas.height = innerHeight
+
+    controller.shadow.style.width = innerWidth + 'px'
+
+    controller.shadow.style.height = innerHeight + 'px'
+
+    
 })
 
 addEventListener("mousemove", (e) => {
@@ -803,24 +892,29 @@ const createExplosive = (x , y) => {
     }
 }
 
-// setInterval(() => {
-//     const angle = Math.atan2(player.y - compTank.y , player.x - compTank.x)
+setInterval(() => {
+    if(!inited) return
 
-//     const velocity = {
-//         x: Math.cos(angle) * superBalls["speed"],
-//         y: Math.sin(angle) * superBalls["speed"]
-//     }
+    const angle = Math.atan2(player.y - compTank.y , player.x - compTank.x)
 
-//     compTank.x += velocity.x
-
-//     compTank.y += velocity.y
-// })
+    const velocity = {
+        x: Math.cos(angle) * 6,
+        y: Math.sin(angle) * 6
+    }
+    
+    compTank.x += velocity.x
+    
+    compTank.y += velocity.y
+} , 20)
 
 // Game loop
 
 const animate = () => {
-    
     requestAnimationFrame(animate)
+    
+    context.fillStyle = "rgba(46 , 52 , 64 , 0.4)"
+
+    context.fillRect(0, 0, canvas.width, canvas.height)
 
     player.x = player.newValues(player.x, 65, 68)
     
@@ -873,11 +967,17 @@ const animate = () => {
 
     for(let star of stars){
         star.draw()
+
+        star.update(rotation)
     }
 
     rotation += 0.001
 
     hexRotation += 1
+
+    if(progressBar !== null){
+        progressBar.draw()
+    }
 }
 
 var progressiveId = null
@@ -965,14 +1065,14 @@ addEventListener("mousedown", () => {
             clearInterval(intervalId)
         }
 
-        const angle = Math.atan2(mousePos.y - player.turret.y, mousePos.x - player.turret.x)
+        const angle = Math.atan2(mousePos.y - player.turret.openingPos.y, mousePos.x - player.turret.openingPos.x)
 
         const velocity = {
             x: Math.cos(angle) * superBalls["speed"],
             y: Math.sin(angle) * superBalls["speed"]
         }
 
-        projectiles.push(new Projectile(player.turret.x + 5, player.turret.y + 5, 5, superBalls["color"], velocity, compTank))
+        projectiles.push(new Projectile(player.turret.openingPos.x + 5, player.turret.openingPos.y + 5, 5, superBalls["color"], velocity, compTank))
     }, 60)
 
 })
@@ -980,11 +1080,17 @@ addEventListener("mousedown", () => {
 
 const init = () => {
     projectiles = []
+
     powerups = []
+    
     colors = ["8FBCBB", "#88C0D0", "#81A1C1", "#5E81AC", "#BF616A"]
+    
     mousePos = { x: null, y: null }
+    
     superBalls = { speed: 7, color: "white" }
+    
     powerUpsUnlocked = { "poison": false, "rocket": false, "decrease": false }
+    
     inited = true
 
     animate()
@@ -1005,23 +1111,3 @@ const init = () => {
 }
 
 stars = []
-
-const starsAnimation = () => {
-    requestAnimationFrame(starsAnimation)
-
-    context.fillStyle = "rgba(46 , 52 , 64 , 0.4)"
-
-    context.fillRect(0, 0, canvas.width, canvas.height)
-
-    // progress.draw()
-
-
-    // for (let star of stars) {
-    //     star.update(rotation)
-    // }
-
-    rotation += 0.001
-
-}
-
-starsAnimation()
