@@ -15,6 +15,7 @@
             margin: 0;
             background-color: #2E3440;
             /* overflow: hidden; */
+            user-select: none;
         }
 
         html::-webkit-scrollbar{
@@ -188,12 +189,73 @@
             border: 1px solid #4C566A;
             padding: 10px;
         }
+
+        .gameName{
+            color: #D8DEE9;
+            font-family: "Comfortaa";            
+        }
+        
+        .name{
+            position: absolute;
+            left: 0%;
+            font-size: 40px;
+            top: 7%;
+            width: 100%;
+            text-align: center;
+            color: #88C0D0;
+        }
+
+        .subname{
+            position: absolute;
+            left: 0%;
+            top: 15%;
+            font-size: 30px;
+            color: #8FBCBB;
+            width: 100%;
+            text-align: center;
+        }
+
+        .paused{
+            border: 1px solid #3B4252;
+            width: 500px;
+            height: 250px;
+            display: none;
+            background-color: #2E3440;
+            border-radius: 20px;
+            color: #D8DEE9;
+            position: absolute;
+            justify-content: center;
+            left: 38%;
+            top: 37%;
+            z-index: 150;
+        }
+
+        .text{
+            padding-bottom: 30px;
+            font-family: "Comfortaa";
+            font-size: 25px;
+        }
+
+        .resume{
+            height: 50px;
+            width: 70%;
+        }
     </style>
 
     <div style="position: relative">
         <div class="box-shadow" style="z-index: 100 ; background: transparent"></div>
 
         <canvas></canvas>
+    </div>
+
+    <div class="gameName">
+        <div class="name">
+            Space Tanks
+        </div>
+
+        <div class="subname">
+            A Game For JS13KGames
+        </div>
     </div>
 
     <div class="buttons">
@@ -208,6 +270,16 @@
 
     <div class="activate">
         Press <code>Q</code> to activate the powerup
+    </div>
+
+    <div class="gamePaused paused">
+        <div class="buttons">
+            <div class="container">
+                <div class="text">Game Paused</div>
+
+                <button class="btn effect01 resume" target="_blank"><span>Resume Game</span></button>
+            </div>
+        </div>    
     </div>
 
 

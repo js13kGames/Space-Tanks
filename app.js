@@ -221,8 +221,6 @@ class Tank {
     }
 
     draw = () => {
-        this.turret.setRotation()
-
         this.turret.draw()
 
         this.healthBar.draw()
@@ -242,7 +240,6 @@ class Tank {
         var widthPerPixel = 10
 
         var widthPerPixel = 10
-
 
         context.save()
 
@@ -384,14 +381,12 @@ class Asteriods {
     }
 
     update = () => {
-        console.log(this.x >= this.enemy.x , this.y >= this.enemy.y , this.x <= this.enemy.x , this.y <= this.enemy.y)
-
-        if(this.x >= this.enemy.x && this.y >= this.enemy.y && this.x <= this.enemy.x && this.y <= this.enemy.y){
+        if((this.x >= this.enemy.x && this.y >= this.enemy.y) || (this.x <= this.enemy.x + this.enemy.width && this.y <= this.enemy.y + this.enemy.height)){
             this.reqAnimation = false
 
-            createExplosive(this.x + 25, this.y + 25)
-
             asteriods.splice(asteriods.indexOf(this) , 1)
+
+            createExplosive(this.x + 25, this.y + 25)
 
             return
         }
@@ -681,11 +676,11 @@ class Turret {
 
         context.beginPath();
         
-        context.translate(this.x + 80, this.y + 5);
+        context.translate(this.x + 85, this.y + 5);
 
         context.rotate(this.rotation * Math.PI / 180);
 
-        context.rect(- 75 , -5 , 80 , 10);
+        context.rect(- 80 , -5 , 80 , 10);
 
         context.fillStyle = "white";
 
@@ -701,7 +696,7 @@ class Turret {
     }
 
     updatePos = () => {
-        const newPoints = this.getRotatedPoints(this.x + 80 , this.y + 5, this.rotation, -40, 5);
+        const newPoints = this.getRotatedPoints(this.x + 80 , this.y, this.rotation, -80, -5);
 
         this.openingPos.x = newPoints.x
 
@@ -919,6 +914,8 @@ const animate = () => {
     player.x = player.newValues(player.x, 65, 68)
     
     player.y = player.newValues(player.y, 87, 83)
+
+    player.turret.setRotation()
     
     for (let projectile of projectiles) {
         projectile.draw()
@@ -1013,6 +1010,8 @@ addEventListener("keydown", (e) => {
         }
         
         powerUpsUnlocked["push"] = false
+
+        progressBar = null
     }
     
 })
@@ -1072,7 +1071,7 @@ addEventListener("mousedown", () => {
             y: Math.sin(angle) * superBalls["speed"]
         }
 
-        projectiles.push(new Projectile(player.turret.openingPos.x + 5, player.turret.openingPos.y + 5, 5, superBalls["color"], velocity, compTank))
+        projectiles.push(new Projectile(player.turret.openingPos.x, player.turret.openingPos.y, 5, superBalls["color"], velocity, compTank))
     }, 60)
 
 })
@@ -1100,6 +1099,12 @@ const init = () => {
     const element = document.querySelector(".buttons")
 
     element.classList.add("fade")
+
+    document.querySelector(".gameName").classList.add("fade")
+
+    setTimeout(() => {
+        document.querySelector(".gameName").style.display = "none"
+    } , 500)
 
     setTimeout(() => {
         element.style.display = "none"
