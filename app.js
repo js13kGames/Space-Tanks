@@ -8,11 +8,11 @@ var progressBar = null;
 const asteriods = [];
 const scrollPos = { x: 0, y: 0 };
 const movingKeysActivated = {};
-const playerPowerUps = {};
-const compPowerUps = {};
+var playerPowerUps = {"poison": false, "push": false};
+var compPowerUps = {"poison": false , "push": false};
 var projectiles,
     powerups,
-    names = ["decrease", "poison"],
+    names = ["push", "poison", "rocket"],
     colors = ["8FBCBB", "#88C0D0", "#81A1C1", "#5E81AC", "#BF616A"],
     stars,
     mousePos = { x: null, y: null },
@@ -300,11 +300,11 @@ class Tank {
             this.radius = this.radius - 5;
         }
 
+        context.closePath();
+
         context.strokeStyle = "white";
 
         context.stroke();
-
-        context.closePath();
 
         context.restore();
     };
@@ -393,11 +393,15 @@ class Asteriods {
     };
 
     update = () => {
-        if (
-            (this.x >= this.enemy.x && this.y >= this.enemy.y) ||
-            (this.x <= this.enemy.x + this.enemy.width &&
-                this.y <= this.enemy.y + this.enemy.height)
-        ) {
+        const diffX = this.x - this.enemy.x
+        
+        const diffY = this.y - this.enemy.y
+        
+        const hypot = Math.sqrt(Math.pow(diffX , 2) + Math.pow(diffY , 2))
+        
+        console.log(hypot)
+        
+        if(hypot < 12){
             this.reqAnimation = false;
 
             asteriods.splice(asteriods.indexOf(this), 1);
@@ -460,7 +464,7 @@ class Projectile {
         this.color = color;
         this.velocity = velocity;
         this.enemy = enemy;
-        this.poison = poison;
+        this.isPoison = poison;
     }
 
     draw = () => {
@@ -494,14 +498,14 @@ class Projectile {
         ) {
             projectiles.splice(projectiles.indexOf(this), 1);
 
-            if (powerUpsUnlocked["poison"]) {
+            if (this.isPoison) {
                 this.enemy.healthBar.decreaseHealth(200);
             } else {
                 this.enemy.healthBar.decreaseHealth(50);
             }
 
             if (this.enemy == player) {
-                if (powerUpsUnlocked["poison"]) {
+                if (this.isPoison) {
                     controller.color = "rgba(163, 190, 140, 0.9)";
                 } else {
                     controller.color = "rgba(191, 97, 106 , 0.9)";
@@ -529,20 +533,20 @@ class PowerUp extends Projectile {
 
         var hypot = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
 
-        if (hypot < 70) {
+        if (hypot < 60) {
             powerups.splice(powerups.indexOf(this), 1);
 
             powerUpCreated = true;
 
-            powerUpsUnlocked[this.name] = true;
-
             progressBar = new Progress(500, () => {
                 powerUpCreated = false;
+
+                playerPowerUps = {"poison": false , "push": false}; // need
             });
 
-            this.caughtBy = player;
+            playerPowerUps[this.name] = true
 
-            this.callback();
+            this.caughtBy = player;
 
             return;
         }
@@ -556,11 +560,15 @@ class PowerUp extends Projectile {
         if (hypot < 70) {
             powerups.splice(powerups.indexOf(this), 1);
 
-            powerUpsUnlocked[this.name] = true;
-
             this.caughtBy = compTank;
 
-            this.callback();
+            compPowerUps[this.name] = true
+
+            setTimeout(() => {
+                compPowerUps = {"poison": false, "push": false}; //need
+            } , 500)
+
+            // this.callback();
 
             powerUpCreated = true;
 
@@ -568,12 +576,10 @@ class PowerUp extends Projectile {
         }
     };
 
-    init = (name, callback, forTank, time) => {
+    init = (name, forTank) => {
         this.name = name;
 
-        this.time = time;
-
-        this.callback = callback;
+        // this.callback = callback;
 
         this.forTank = forTank;
 
@@ -605,7 +611,7 @@ class PowerUp extends Projectile {
 
                 break;
 
-            case "decrease":
+            case "push":
                 this.path = new Path2D();
 
                 this.path.addPath(
@@ -680,11 +686,11 @@ class PowerUp extends Projectile {
 
         context.closePath();
 
-        context.fillStyle = "#88C0D0";
+        context.fillStyle = "blue";
 
         context.fill();
 
-        context.strokeStyle = "#3B4252";
+        context.strokeStyle = "yellow";
 
         context.lineWidth = 2;
 
@@ -696,7 +702,7 @@ class PowerUp extends Projectile {
 
         context.translate(-15, -15);
 
-        context.fillStyle = "#2E3440";
+        context.fillStyle = "orange";
 
         context.fill(this.path);
 
@@ -751,6 +757,8 @@ class Turret {
         context.rect(-80, -5, 80, 5);
 
         context.fillStyle = "white";
+
+        context.closePath()
 
         context.fill();
 
@@ -816,13 +824,11 @@ const increaseBalls = () => {
 };
 
 const enablePoison = () => {
-    powerUpsUnlocked["poison"] = true;
+    // powerUpsUnlocked["poison"] = true;
 };
 
 const decreaseHealth = (powerup) => {
     powerEl.classList.add("unfade");
-
-    powerUpsUnlocked["push"] = true;
 
     setTimeout(() => {
         powerEl.classList.remove("unfade");
@@ -838,6 +844,8 @@ const spawnPowerUps = () => {
 
             return;
         }
+
+        // alert("Spawning")
 
         const radius = 29;
 
@@ -866,21 +874,18 @@ const spawnPowerUps = () => {
 
         switch (_name) {
             case "poison":
-                powerup.init(_name, enablePoison, player);
+                powerup.init(_name, player);
 
                 break;
 
             case "rocket":
-                powerup.init(_name, increaseBalls, player);
+                powerup.init(_name, player);
 
                 break;
 
-            case "decrease":
+            case "push":
                 powerup.init(
                     _name,
-                    () => {
-                        decreaseHealth(powerup);
-                    },
                     player
                 );
 
@@ -890,19 +895,20 @@ const spawnPowerUps = () => {
         powerups.push(powerup);
 
         spawnPowerUps();
-    }, Math.random() * (5000 - 10000) + 10000);
+    }, Math.random() * (500- 1000) + 1000);
 };
 
-//     // var angle = Math.atan2(player.y - compTank.y, player.x - compTank.x)
+// setInterval(() => {
+//     var angle = Math.atan2(player.y - compTank.y, player.x - compTank.x)
 
-//     // var velocity = {
-//     //     x: Math.cos(angle) * 2,
-//     //     y: Math.sin(angle) * 2
-//     // }
+//     var velocity = {
+//         x: Math.cos(angle) * 2,
+//         y: Math.sin(angle) * 2
+//     }
 
-//     // compTank.x += velocity.x
+//     compTank.x += velocity.x
 
-//     // compTank.y += velocity.y
+//     compTank.y += velocity.y
 
 // } , 10)
 
@@ -917,9 +923,9 @@ var compTank = new Tank(1400, 400, 7, compProgress);
 setInterval(() => {
     if (!inited) return;
 
-    const angle = -Math.atan2(
-        player.y + 50 - compTank.turret.openingPos.y,
-        player.x + 50 - compTank.turret.openingPos.y
+    const angle = Math.atan2(
+        mousePos.y - player.turret.openingPos.y,
+        mousePos.x - player.turret.openingPos.x
     );
 
     const velocity = {
@@ -927,12 +933,14 @@ setInterval(() => {
         y: Math.sin(angle) * 7,
     };
 
-    if (powerUpsUnlocked["poison"]) {
+    // Sheild whose power will decrease by time
+
+    if (compPowerUps["poison"]) {
         projectiles.push(
             new Projectile(
                 compTank.turret.openingPos.x,
                 compTank.turret.openingPos.y,
-                5,
+                4,
                 "#A3BE8C",
                 velocity,
                 player
@@ -943,7 +951,7 @@ setInterval(() => {
             new Projectile(
                 compTank.turret.openingPos.x,
                 compTank.turret.openingPos.y,
-                5,
+                4,
                 "#BF616A",
                 velocity,
                 player
@@ -1000,8 +1008,10 @@ const createExplosive = (x, y) => {
 
 // Game loop
 
+
+
 const animate = () => {
-    requestAnimationFrame(animate);
+    handleNumber = requestAnimationFrame(animate);
 
     context.fillStyle = "rgba(46 , 52 , 64 , 0.4)";
 
@@ -1095,7 +1105,7 @@ addEventListener("keydown", (e) => {
         return;
     }
 
-    if (powerUpsUnlocked["push"] && e.which === 81) {
+    if (playerPowerUps["push"] && e.which === 81) {
         for (let rock of asteriods) {
             if (
                 rock.x > player.x &&
@@ -1107,7 +1117,7 @@ addEventListener("keydown", (e) => {
             }
         }
 
-        powerUpsUnlocked["push"] = false;
+        playerPowerUps["push"] = false;
 
         powerUpCreated = false;
 
@@ -1167,22 +1177,32 @@ addEventListener("mousedown", () => {
         );
 
         const velocity = {
-            x: Math.cos(angle) * superBalls["speed"],
-            y: Math.sin(angle) * superBalls["speed"],
+            x: Math.cos(angle) * 7,
+            y: Math.sin(angle) * 7,
         };
+
+        var color = ""
+
+        if(playerPowerUps["poison"]){
+            color = "#A3BE8C"
+        } else {
+            color ="#D8DEE9"
+        }
 
         projectiles.push(
             new Projectile(
                 player.turret.openingPos.x,
                 player.turret.openingPos.y,
-                5,
-                superBalls["color"],
+                4,
+                color,
                 velocity,
                 compTank
             )
         );
     }, 60);
 });
+
+var handleNumber = null
 
 const init = () => {
     projectiles = [];
@@ -1194,8 +1214,6 @@ const init = () => {
     mousePos = { x: null, y: null };
 
     superBalls = { speed: 7, color: "white" };
-
-    powerUpsUnlocked = { poison: false, rocket: false, decrease: false };
 
     inited = true;
 
@@ -1231,3 +1249,22 @@ const init = () => {
 stars = [];
 
 init();
+
+addEventListener("visibilitychange" , () => {
+    if(document.visibilityState !== "visible"){
+        cancelAnimationFrame(handleNumber)
+
+        document.querySelector(".gamePaused").style.display = "block"
+    }
+})
+
+
+document.querySelector(".resume").addEventListener("click" , () => {
+    animate()
+
+    document.querySelector(".gamePaused").classList.add("fade")
+
+    setTimeout(() => {
+        document.querySelector(".gamePaused").style.display = "none"
+    } , 500)
+})
