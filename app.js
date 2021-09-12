@@ -12,7 +12,7 @@ var playerPowerUps = {"poison": false, "push": false};
 var compPowerUps = {"poison": false , "push": false};
 var projectiles,
     powerups,
-    names = ["push", "poison", "rocket"],
+    names = ["push", "poison", "rocket", "sheild"],
     colors = ["8FBCBB", "#88C0D0", "#81A1C1", "#5E81AC", "#BF616A"],
     stars,
     mousePos = { x: null, y: null },
@@ -398,9 +398,7 @@ class Asteriods {
         const diffY = this.y - this.enemy.y
         
         const hypot = Math.sqrt(Math.pow(diffX , 2) + Math.pow(diffY , 2))
-        
-        console.log(hypot)
-        
+                
         if(hypot < 12){
             this.reqAnimation = false;
 
@@ -656,6 +654,11 @@ class PowerUp extends Projectile {
                 );
 
                 break;
+
+            case "sheild":
+                this.path = new Path2D("M 14.734375 0.0390625 C 13.257812 0.453125 2.9375 3.59375 2.804688 3.667969 C 2.703125 3.734375 2.566406 3.855469 2.496094 3.945312 L 2.375 4.109375 L 2.375 11.0625 C 2.375 16.453125 2.390625 18.105469 2.449219 18.410156 C 3.007812 21.359375 5.351562 24.210938 9.53125 27.03125 C 11.53125 28.371094 14.523438 30 15 30 C 15.476562 30 18.46875 28.371094 20.46875 27.03125 C 24.648438 24.210938 26.992188 21.359375 27.550781 18.410156 C 27.609375 18.105469 27.625 16.453125 27.625 11.0625 L 27.625 4.109375 L 27.503906 3.945312 C 27.433594 3.855469 27.296875 3.734375 27.195312 3.667969 C 26.964844 3.53125 15.410156 0.0625 15.085938 0.03125 C 14.960938 0.015625 14.800781 0.0234375 14.734375 0.0390625 Z M 20.46875 3.4375 L 25.898438 5.070312 L 25.898438 11.289062 C 25.898438 15.339844 25.875 17.671875 25.835938 17.96875 C 25.703125 18.949219 25.164062 20.144531 24.40625 21.164062 C 23.917969 21.808594 22.75 23.023438 21.984375 23.679688 C 20.519531 24.9375 18.601562 26.21875 16.4375 27.40625 C 15.351562 27.996094 15.054688 28.136719 14.917969 28.101562 C 14.554688 28.007812 11.898438 26.484375 10.632812 25.648438 C 8.554688 24.265625 6.664062 22.582031 5.59375 21.164062 C 4.835938 20.144531 4.296875 18.949219 4.164062 17.96875 C 4.125 17.671875 4.101562 15.339844 4.101562 11.289062 L 4.101562 5.070312 L 9.480469 3.453125 C 12.433594 2.5625 14.894531 1.828125 14.941406 1.820312 C 14.988281 1.816406 17.472656 2.542969 20.46875 3.4375 Z M 20.46875 3.4375")
+
+                alert("A")
         }
     };
 
@@ -870,27 +873,7 @@ const spawnPowerUps = () => {
 
         const powerup = new PowerUp(x, y, null, null, velocity);
 
-        _name = names[Math.floor(Math.random() * names.length)];
-
-        switch (_name) {
-            case "poison":
-                powerup.init(_name, player);
-
-                break;
-
-            case "rocket":
-                powerup.init(_name, player);
-
-                break;
-
-            case "push":
-                powerup.init(
-                    _name,
-                    player
-                );
-
-                break;
-        }
+        powerup.init(names[Math.floor(Math.random() * names.length)], player);
 
         powerups.push(powerup);
 
