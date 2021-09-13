@@ -4,7 +4,7 @@ A Game for JS13KGames
 
 # Controls:
 
-- Use ```W``````A``````S``````D``` to move the tank
+- Use ```W``` ```A``` ```S``` ```D``` to move the tank
 
 - Use ```mouse``` to move the turret
 
