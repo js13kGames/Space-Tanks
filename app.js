@@ -14,11 +14,11 @@ var playerPowerUps = {
     rocket: false,
     sheild: false,
 };
-var compPowerUps = { "poison": false, "push": false, "rocket": false, "sheild": false };
+var gameOver = false
+var compPowerUps = {"poison": false, "push": false, "rocket": false, "sheild": false };
 var projectiles,
     powerups,
-    // , "poison", "rocket", "sheild"
-    names = ["rocket"],
+    names = ["push" ],
     colors = ["8FBCBB", "#88C0D0", "#81A1C1", "#5E81AC", "#BF616A"],
     stars,
     mousePos = { x: null, y: null },
@@ -37,22 +37,35 @@ var compBall = {
 const explosives = [];
 
 class Ammo {
-    constructor(){
+    constructor(needDraw=true){
         this.x = innerWidth - 300
 
-        this.y = innerHeight - 100
+        this.y = innerHeight - 200
+
+        this.constX = this.x
+
+        this.constY = this.y
 
         this.isReloading = false
 
         this.currAmmo = 100
 
+        this.needDraw = needDraw
+
         this.path = new Path2D("M 24.539062 0.125 C 24.140625 0.351562 22.664062 1.671875 22.101562 2.3125 C 19.746094 4.992188 18.359375 7.851562 17.714844 11.375 C 17.609375 11.984375 17.539062 13.054688 17.507812 14.863281 C 17.460938 17.039062 17.429688 17.480469 17.3125 17.480469 C 17.234375 17.480469 17.070312 17.585938 16.945312 17.726562 L 16.699219 17.960938 L 16.699219 43.742188 L 16.953125 43.9375 C 17.101562 44.054688 17.273438 44.140625 17.34375 44.140625 C 17.441406 44.140625 17.480469 44.277344 17.480469 44.578125 C 17.480469 44.941406 17.453125 45.019531 17.304688 45.019531 C 17.207031 45.019531 17.03125 45.117188 16.914062 45.242188 C 16.710938 45.460938 16.699219 45.554688 16.699219 47.5 C 16.699219 49.511719 16.699219 49.523438 16.945312 49.757812 L 17.179688 50 L 32.820312 50 L 33.054688 49.757812 C 33.300781 49.523438 33.300781 49.511719 33.300781 47.480469 C 33.300781 45.476562 33.300781 45.4375 33.078125 45.234375 C 32.949219 45.117188 32.773438 45.019531 32.6875 45.019531 C 32.558594 45.019531 32.519531 44.929688 32.519531 44.578125 C 32.519531 44.277344 32.558594 44.140625 32.65625 44.140625 C 32.726562 44.140625 32.898438 44.054688 33.046875 43.9375 L 33.300781 43.742188 L 33.300781 17.960938 L 33.054688 17.726562 C 32.929688 17.585938 32.765625 17.480469 32.6875 17.480469 C 32.570312 17.480469 32.539062 17.039062 32.492188 14.863281 C 32.441406 12.128906 32.351562 11.375 31.875 9.570312 C 31.035156 6.367188 28.992188 3.09375 26.503906 0.957031 C 25.546875 0.136719 25.34375 0.0078125 25 0.0078125 C 24.863281 0.0078125 24.65625 0.0585938 24.539062 0.125 Z M 26.21875 3.046875 C 28.171875 5.058594 29.460938 7.246094 30.203125 9.824219 C 30.683594 11.476562 30.78125 12.296875 30.828125 14.960938 L 30.878906 17.480469 L 19.121094 17.480469 L 19.171875 14.960938 C 19.21875 12.296875 19.316406 11.476562 19.796875 9.824219 C 20.28125 8.125 21.074219 6.476562 22.148438 4.953125 C 22.773438 4.054688 24.773438 1.953125 25 1.953125 C 25.078125 1.953125 25.632812 2.441406 26.21875 3.046875 Z M 31.640625 30.8125 L 31.640625 42.480469 L 18.359375 42.480469 L 18.359375 19.140625 L 31.640625 19.140625 Z M 30.859375 44.578125 L 30.859375 45.019531 L 19.140625 45.019531 L 19.140625 44.140625 L 30.859375 44.140625 Z M 31.640625 47.507812 L 31.640625 48.339844 L 18.359375 48.339844 L 18.359375 46.679688 L 31.640625 46.679688 Z M 31.640625 47.507812")
     }
 
     draw = () => {
-        this.x = innerWidth - 400
+        if(!this.needDraw){            
+            return
+        }
 
+        
+        this.x = innerWidth - 400
+        
         this.y = innerHeight - 100
+        
+        const x = this.x + 20
 
         var color = ""
 
@@ -80,6 +93,10 @@ class Ammo {
             context.resetTransform()
         }
 
+        if(this.isReloading){
+            context.fillText("Reloading..." , x , this.y + 85)
+        }
+
     }
 
     decreaseAmmo = () => {
@@ -89,7 +106,11 @@ class Ammo {
     reload = () => {
         setTimeout(() => {
             this.currAmmo = 100
-        } , 50)
+
+            this.isReloading = false
+        } , 3000)
+
+        this.isReloading = true
 
     } 
 
@@ -408,10 +429,9 @@ class Tank {
 }
 
 class Asteriods {
-    constructor(x, y, enemy) {
+    constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.enemy = enemy;
         this.path = new Path2D();
 
         this.path.addPath(
@@ -466,7 +486,6 @@ class Asteriods {
         // } else if(compPowerUps["push"]){
         //     this.enemy = player
 
-        //     // console.log(":A")
         // }
 
         const diffX = this.x - this.enemy.x;
@@ -481,6 +500,8 @@ class Asteriods {
             asteriods.splice(asteriods.indexOf(this), 1);
 
             createExplosive(this.x + 25, this.y + 25);
+
+            this.enemy.healthBar.decreaseHealth(1500)
 
             return;
         }
@@ -564,6 +585,8 @@ class Projectile {
     };
 
     check = () => {
+        if(paused) return
+
         if (
             this.x > this.enemy.x &&
             this.y > this.enemy.y &&
@@ -659,6 +682,8 @@ class PowerUp extends Projectile {
                     "rocket": false,
                     "sheild": false,
                 }; 
+
+                powerUpCreated = false
             }, 10000);
 
             if(this.name === "sheild"){
@@ -921,6 +946,8 @@ setTimeout(() => {
     }
 }, 0);
 
+var paused = false
+
 const increaseBalls = () => {
     superBalls = { speed: 10, color: "#88C0D0" };
 };
@@ -941,11 +968,16 @@ const decreaseHealth = (powerup) => {
 
 const spawnPowerUps = () => {
     setTimeout(() => {
+        if(!inited || paused){
+            return
+        }
+
         if (powerUpCreated) {
             spawnPowerUps();
 
             return;
         }
+
 
         // alert("Spawning")
 
@@ -982,10 +1014,14 @@ const spawnPowerUps = () => {
         powerups.push(powerup);
 
         spawnPowerUps();
-    }, Math.random() * (1000 - 500) + 500);
+    }, Math.random() * (15000 - 10000) + 10000);
 };
 
 setInterval(() => {
+    if(!inited || paused){
+        return
+    }
+
     var xUpdate = 0, yUpdate = 0
 
     try{
@@ -993,40 +1029,40 @@ setInterval(() => {
         const p = powerups[0]
 
         if(compTank.x > p.x){
-            xUpdate -= 2
+            xUpdate -= 1.5
         }
         
         if(compTank.x < p.x){
-            xUpdate += 2
+            xUpdate += 1.5
         }
         
 
         if(compTank.y > p.y){
-            yUpdate -= 2
+            yUpdate -= 1.5
         }
         
 
         if(compTank.y < p.y){
-            yUpdate += 2
+            yUpdate += 1.5
         }
         
     } catch{
         if(compTank.x > player.x + 50){
-            xUpdate -= 2
+            xUpdate -= 1.5
         }
         
         if(compTank.x < player.x + 50){
-            xUpdate += 2
+            xUpdate += 1.5
         }
         
 
         if(compTank.y > player.y + 50){
-            yUpdate -= 2
+            yUpdate -= 1.5
         }
         
 
         if(compTank.y < player.y + 50){
-            yUpdate += 2
+            yUpdate += 1.5
         }
         
         if(Math.abs(player.x - compTank.x) < 100 || Math.abs(player.y - compTank.y) < 100) return
@@ -1046,10 +1082,20 @@ var player = new Tank(250, 400, 7, playerProgress , ammoHandler);
 
 var compProgress = new PlayerProgress(innerWidth - 350, 50, "Computer 1");
 
-var compTank = new Tank(1400, 400, 7, compProgress, null);
+var compAmmo = new Ammo(false)
+
+var compTank = new Tank(1400, 400, 7, compProgress, compAmmo);
 
 setInterval(() => {
-    if (!inited) return;
+    if(!inited || paused){
+        return
+    }
+
+    if(compAmmo.currAmmo === 0 || compAmmo.isReloading){
+        compAmmo.reload()
+
+        return
+    }
 
     const angle = Math.atan2(
         player.y + 50 - compTank.turret.openingPos.y,
@@ -1084,7 +1130,9 @@ setInterval(() => {
             )
         );
     }
-}, 200);
+
+    compAmmo.decreaseAmmo()
+}, 100);
 
 // Event listeners
 addEventListener("resize", () => {
@@ -1106,8 +1154,8 @@ addEventListener("mousemove", (e) => {
 var rotation = 0;
 var hexRotation = 0;
 
-const createExplosive = (x, y) => {
-    for (let i = 0; i < 50; i++) {
+const createExplosive = (x, y, count=50) => {
+    for (let i = 0; i < count; i++) {
         explosives.push(
             new Explosive(x, y, Math.random() * 4, "white", {
                 x: (Math.random() - 0.5) * 10,
@@ -1158,12 +1206,15 @@ const animate = () => {
             }
             projectile.check();
         }
-        
-        for (let explosion of explosives) {
-            explosion.draw();
-            
-            explosion.update();
+
+        if(!paused){
+            for (let explosion of explosives) {
+                explosion.draw();
+                
+                explosion.update();
+            }
         }
+        
         
         finished = false;
         
@@ -1230,13 +1281,14 @@ const animate = () => {
         
         player.turret.setRotation();
         
-        player.draw();
+        if(player !== null){
+            player.draw();
+        }
 
-        // if(compTank.healthBar.playerHealth < 0){
-        //     alert("You won!")
-        // } 
-        
-        compTank.draw();
+        if(compTank !== null){
+            compTank.draw();            
+        }
+
     };
     
     var progressiveId = null;
@@ -1290,36 +1342,6 @@ addEventListener("keydown", (e) => {
     }
 });
 
-// setInterval(() => {
-//     const frequency = 50
-
-//     if(movingKeysActivated[87]){
-//         scrollPos.y = Math.max(scrollPos.y -  frequency , 0)
-
-//     }
-
-//     if(movingKeysActivated[65]){
-//         scrollPos.x = Math.max(scrollPos.x -  frequency , 0)
-
-//     }
-
-//     if(movingKeysActivated[68]){
-//         scrollPos.x = Math.max(scrollPos.x + frequency , 0)
-
-//     }
-
-//     if(movingKeysActivated[83]){
-//         scrollPos.y = Math.max(scrollPos.y -  frequency , 0)
-//     }
-
-//     window.scrollTo({
-//         "behavior": "smooth",
-//         "left": scrollPos.x,
-//         "top": scrollPos.y
-//     })
-
-// } , 20)
-
 addEventListener("keyup", (e) => {
     player.keyActivated[e.which] = false;
 
@@ -1336,7 +1358,9 @@ addEventListener("mousedown", () => {
             clearInterval(intervalId);
         }
 
-        if(player.ammoHandler.currAmmo === 0){
+        if(player.ammoHandler.currAmmo === 0 || player.ammoHandler.isReloading){
+            player.ammoHandler.reload()
+
             return
         }
 
@@ -1412,7 +1436,6 @@ const init = () => {
             new Asteriods(
                 Math.random() * innerWidth,
                 Math.random() * innerHeight,
-                compTank
             )
         );
     }
@@ -1420,7 +1443,6 @@ const init = () => {
 
 stars = [];
 
-init();
 
 addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") {
@@ -1457,7 +1479,9 @@ setInterval(() => {
 } , 5)
 
 setInterval(() => {
-    const angle = Math.atan2(player.y - compTank.turret.y + 5 , player.x - compTank.turret.x + 80) * 180 / Math.PI;
+    if(paused) return
+
+    const angle = Math.atan2(player.y + 50 - compTank.turret.y , player.x + 50 - compTank.turret.x) * 180 / Math.PI;
 
     compTank.turret.setRotation(angle)
 
@@ -1472,8 +1496,6 @@ setInterval(() => {
                 rock.reqAnimation = true;
 
                 rock.enemy = player
-
-                console.log("RAN@!")
             }
         }
 
@@ -1486,7 +1508,78 @@ setInterval(() => {
 
     if(compPowerUps["rocket"]){
         compBall["speed"] = 15
+    } else {
+        compBall["speed"] = 7
+    }
+
+    if(compPowerUps["sheild"]){
+        context.save();
+            
+        context.beginPath();
+        
+        context.arc(compTank.x + 70, compTank.y + 45, 100, 0, Math.PI * 2, false);
+        
+        context.strokeStyle = "#4C566A";
+        
+        context.shadowColor = "#4C566A";
+        
+        context.shadowBlur = sheildIntensity;
+        
+        context.shadowOffsetX = 0;
+        
+        context.shadowOffsetY = 0;
+        
+        context.stroke();
+        
+        context.closePath();
+        
+        context.restore();
+        
+        sheildIntensity -= 0.05;
     }
 
 } , 5)
 
+const badge = document.querySelector(".badge")
+
+setInterval(() => {
+    if(player.healthBar.playerHealth <= 0 && !paused){
+        paused = true
+
+        createExplosive(player.x + 50 , player.y + 50 , 200)
+
+        player = null
+
+        badge.innerHTML = "You Lose!"
+
+        badge.classList.add("unfade")
+
+        setTimeout(() => {
+            badge.style.opacity = 1
+        } , 500)
+
+        return
+    }
+
+    if(compTank.healthBar.playerHealth <= 0 && !paused){
+        paused = true
+        
+        createExplosive(compTank.x + 50 , compTank.y + 50 , 200)
+        
+        compTank = null
+        
+        badge.innerHTML = "You Won!"
+        
+        badge.classList.add("unfade")
+
+        setTimeout(() => {
+            badge.style.opacity = 1
+        } , 500)
+        
+        return
+
+
+    }
+
+    
+})
