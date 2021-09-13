@@ -14,16 +14,22 @@ var playerPowerUps = {
     rocket: false,
     sheild: false,
 };
-var compPowerUps = { poison: false, push: false, rocket: false, sheild: false };
+var compPowerUps = { "poison": false, "push": false, "rocket": false, "sheild": false };
 var projectiles,
     powerups,
-    names = ["push", "poison", "rocket", "sheild"],
+    // , "poison", "rocket", "sheild"
+    names = ["rocket"],
     colors = ["8FBCBB", "#88C0D0", "#81A1C1", "#5E81AC", "#BF616A"],
     stars,
     mousePos = { x: null, y: null },
     superBalls,
     inited = false;
 var playerBall = {
+    "radius": 4,
+    "speed": 7,
+    "color": "#D8DEE9"
+}
+var compBall = {
     "radius": 4,
     "speed": 7,
     "color": "#D8DEE9"
@@ -39,15 +45,53 @@ class Ammo {
         this.isReloading = false
 
         this.currAmmo = 100
+
+        this.path = new Path2D("M 24.539062 0.125 C 24.140625 0.351562 22.664062 1.671875 22.101562 2.3125 C 19.746094 4.992188 18.359375 7.851562 17.714844 11.375 C 17.609375 11.984375 17.539062 13.054688 17.507812 14.863281 C 17.460938 17.039062 17.429688 17.480469 17.3125 17.480469 C 17.234375 17.480469 17.070312 17.585938 16.945312 17.726562 L 16.699219 17.960938 L 16.699219 43.742188 L 16.953125 43.9375 C 17.101562 44.054688 17.273438 44.140625 17.34375 44.140625 C 17.441406 44.140625 17.480469 44.277344 17.480469 44.578125 C 17.480469 44.941406 17.453125 45.019531 17.304688 45.019531 C 17.207031 45.019531 17.03125 45.117188 16.914062 45.242188 C 16.710938 45.460938 16.699219 45.554688 16.699219 47.5 C 16.699219 49.511719 16.699219 49.523438 16.945312 49.757812 L 17.179688 50 L 32.820312 50 L 33.054688 49.757812 C 33.300781 49.523438 33.300781 49.511719 33.300781 47.480469 C 33.300781 45.476562 33.300781 45.4375 33.078125 45.234375 C 32.949219 45.117188 32.773438 45.019531 32.6875 45.019531 C 32.558594 45.019531 32.519531 44.929688 32.519531 44.578125 C 32.519531 44.277344 32.558594 44.140625 32.65625 44.140625 C 32.726562 44.140625 32.898438 44.054688 33.046875 43.9375 L 33.300781 43.742188 L 33.300781 17.960938 L 33.054688 17.726562 C 32.929688 17.585938 32.765625 17.480469 32.6875 17.480469 C 32.570312 17.480469 32.539062 17.039062 32.492188 14.863281 C 32.441406 12.128906 32.351562 11.375 31.875 9.570312 C 31.035156 6.367188 28.992188 3.09375 26.503906 0.957031 C 25.546875 0.136719 25.34375 0.0078125 25 0.0078125 C 24.863281 0.0078125 24.65625 0.0585938 24.539062 0.125 Z M 26.21875 3.046875 C 28.171875 5.058594 29.460938 7.246094 30.203125 9.824219 C 30.683594 11.476562 30.78125 12.296875 30.828125 14.960938 L 30.878906 17.480469 L 19.121094 17.480469 L 19.171875 14.960938 C 19.21875 12.296875 19.316406 11.476562 19.796875 9.824219 C 20.28125 8.125 21.074219 6.476562 22.148438 4.953125 C 22.773438 4.054688 24.773438 1.953125 25 1.953125 C 25.078125 1.953125 25.632812 2.441406 26.21875 3.046875 Z M 31.640625 30.8125 L 31.640625 42.480469 L 18.359375 42.480469 L 18.359375 19.140625 L 31.640625 19.140625 Z M 30.859375 44.578125 L 30.859375 45.019531 L 19.140625 45.019531 L 19.140625 44.140625 L 30.859375 44.140625 Z M 31.640625 47.507812 L 31.640625 48.339844 L 18.359375 48.339844 L 18.359375 46.679688 L 31.640625 46.679688 Z M 31.640625 47.507812")
     }
 
     draw = () => {
-        this.x = innerWidth - 300
+        this.x = innerWidth - 400
 
         this.y = innerHeight - 100
 
-        context.fillText(`Ammo: ${this.currAmmo} / 100` , this.x , this.y)
+        var color = ""
+
+        if(this.currAmmo >= 80){
+            color = "#A3BE8C"
+        } else if(this.currAmmo >= 60){
+            color = "#B48EAD"
+        } else if(this.currAmmo >= 40){
+            color = "#EBCB8B"
+        } else if(this.currAmmo >= 20){
+            color = "#D08770"
+        } else {
+            color = "#BF616A"
+        }
+
+        context.fillStyle = color
+
+        for(let i = 0; i < Math.ceil(this.currAmmo / 10); i++){
+            context.translate(this.x , this.y)
+
+            context.fill(this.path)
+
+            this.x += 35
+
+            context.resetTransform()
+        }
+
     }
+
+    decreaseAmmo = () => {
+        this.currAmmo -= 1
+    }
+
+    reload = () => {
+        setTimeout(() => {
+            this.currAmmo = 100
+        } , 50)
+
+    } 
 
 
 }
@@ -167,6 +211,12 @@ class PlayerProgress {
     };
 
     decreaseHealth = (decrease) => {
+        if(this.name == "Computer 1" && compPowerUps["sheild"]){
+            return
+        }
+
+        if(this.name == "Player 1" && playerPowerUps["sheild"]) return
+
         this.playerHealth -= decrease;
     };
 }
@@ -187,20 +237,10 @@ class Tank {
 
         this.ammoHandler = ammoHandler
 
-        // this.pixelMap = [
-        //     [1, 1, 1, 1, 14, 1, 14, 1, 1, 1, 1, 1, 1, 1],
-        //     [1, 1, 1, 1, 15, 1, 15, 1, 1, 1, 1, 1, 1, 1],
-        //     [1, 1, 2, 3, 3, 3, 3, 4, 1, 1, 1, 1, 1, 1],
-        //     [1, 5, 1, 1, 1, 1, 1, 1, 3, 4, 1, 1, 1, 1],
-        //     [1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 6, 1, 1, 1],
-        //     [1, 1, 7, 3, 3, 3, 3, 3, 3, 8, 1, 1, 1, 1],
-        //     [1, 1, 9, 10, 10, 10, 10, 10, 10, 12, 1, 1, 1, 1],
-        //     [1, 1, 13, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        // ];
 
         this.speed = speed;
 
-        this.turret = new Turret(this.x - 500, this.y - 500);
+        this.turret = new Turret(this.x , this.y - 500);
     }
 
     draw = () => {
@@ -215,9 +255,9 @@ class Tank {
 
         this.healthBar.draw();
 
-        this.turret.x = this.x - 38;
+        this.turret.x = this.x;
 
-        this.turret.y = this.y - 5;
+        this.turret.y = this.y + 25;
 
         this.turret.updatePos();
 
@@ -231,9 +271,9 @@ class Tank {
 
         context.beginPath();
 
-        widthPerPixel = 15;
+        widthPerPixel = 10;
 
-        heightPerPixel = 15;
+        heightPerPixel = 10;
 
         x += widthPerPixel * 2 
 
@@ -331,7 +371,7 @@ class Tank {
             context.lineTo(x - widthPerPixel , y)
         }
 
-        context.arc(x  , y - 49 , 25 , 0.5 * Math.PI , Math.PI)
+        context.arc(x - 10 , y - 25 , 25 , 0.5 * Math.PI , Math.PI)
 
         context.strokeStyle = "white";
 
@@ -376,44 +416,18 @@ class Asteriods {
 
         this.path.addPath(
             new Path2D(
-                "M3802 5008 c428 -417 479 -1068 122 -1541 -36 -46 -260 -279 -518 -537 -375 -374 -456 -451 -461 -435 -34 107 -107 190 -192 219 -59 20 -156 20 -216 0 -102 -34 -185 -146 -194 -258 -8 -91 16 -161 74 -226 47 -52 127 -100 168 -100 14 0 -90 -110 -330 -350 l-350 -350 -87 0 -88 0 0 -88 0 -88 -348 -345 c-367 -366 -425 -415 -586 -490 -73 -33 -203 -77 -280 -94 l-29 -6 24 -16 c13 -9 26 -20 29 -23 34 -41 218 -139 336 -179 147 -49 257 -64 419 -58 237 10 436 75 632 208 60 41 388 362 1427 1398 741 741 1390 1392 1441 1448 104 114 159 193 210 300 272 568 47 1257 -506 1545 -194 101 -363 138 -638 138 l-134 0 75 -72z"
+                "M 38.117188 2.023438 C 37.117188 2.761719 34.261719 4.882812 31.757812 6.726562 C 29.273438 8.585938 27.054688 10.1875 26.835938 10.296875 C 26.632812 10.40625 23.75 11.648438 20.4375 13.042969 C 17.132812 14.453125 14.34375 15.679688 14.246094 15.765625 C 14.082031 15.929688 9.570312 44.773438 9.570312 45.679688 C 9.570312 46.085938 13.78125 61.617188 14.082031 62.304688 C 14.179688 62.535156 15.96875 63.492188 20.929688 65.980469 L 27.671875 69.34375 L 39.085938 68.101562 C 48.601562 67.0625 50.558594 66.800781 50.75 66.609375 C 50.875 66.484375 52.582031 63.738281 54.5625 60.5 L 58.148438 54.617188 L 59.28125 45.253906 C 59.910156 40.101562 60.429688 35.640625 60.429688 35.34375 C 60.429688 35.039062 59.445312 30.09375 58.242188 24.335938 C 57.039062 18.59375 56.054688 13.835938 56.054688 13.78125 C 56.054688 13.699219 42.039062 1.929688 40.824219 0.984375 C 40.605469 0.820312 40.320312 0.683594 40.195312 0.683594 C 40.058594 0.683594 39.128906 1.285156 38.117188 2.023438 Z M 39.335938 12.933594 C 39.304688 12.960938 30.039062 10.789062 29.476562 10.625 C 29.40625 10.59375 31.59375 8.914062 34.328125 6.875 L 39.304688 3.1875 L 39.347656 8.039062 C 39.359375 10.703125 39.359375 12.90625 39.335938 12.933594 Z M 47.824219 8.953125 C 51.242188 11.796875 54.058594 14.203125 54.101562 14.289062 C 54.15625 14.453125 48.125 26.921875 47.988281 26.921875 C 47.945312 26.933594 46.359375 23.992188 44.476562 20.414062 L 41.015625 13.890625 L 41.015625 3.242188 L 41.328125 3.515625 C 41.492188 3.664062 44.421875 6.109375 47.824219 8.953125 Z M 32.992188 13.152344 C 35.902344 13.851562 38.265625 14.464844 38.253906 14.507812 C 38.226562 14.5625 35.246094 17.101562 31.625 20.152344 L 25.019531 25.703125 L 23.335938 23.953125 C 17.445312 17.882812 16.28125 16.609375 16.515625 16.5 C 18.171875 15.75 27.328125 11.90625 27.480469 11.894531 C 27.589844 11.894531 30.0625 12.453125 32.992188 13.152344 Z M 43.382812 21.890625 C 45.351562 25.621094 46.730469 28.382812 46.664062 28.453125 C 46.59375 28.519531 41.753906 30.625 35.914062 33.140625 L 25.292969 37.695312 L 25.292969 37.0625 C 25.292969 36.722656 25.390625 34.371094 25.511719 31.855469 L 25.730469 27.273438 L 26.085938 26.976562 C 26.289062 26.8125 29.4375 24.144531 33.085938 21.070312 C 36.734375 17.992188 39.785156 15.476562 39.851562 15.460938 C 39.9375 15.460938 41.523438 18.347656 43.382812 21.890625 Z M 56.738281 25.183594 C 57.710938 29.789062 58.488281 33.578125 58.476562 33.578125 C 58.460938 33.59375 56.382812 32.46875 53.867188 31.089844 C 51.171875 29.613281 49.289062 28.507812 49.289062 28.382812 C 49.289062 28.148438 54.867188 16.664062 54.933594 16.75 C 54.960938 16.773438 55.78125 20.578125 56.738281 25.183594 Z M 20.289062 23.160156 L 24.0625 27.109375 L 24.0625 27.808594 C 24.046875 28.929688 23.554688 38.429688 23.5 38.484375 C 23.378906 38.59375 11.457031 44.3125 11.414062 44.269531 C 11.375 44.214844 15.296875 18.609375 15.394531 18.335938 C 15.476562 18.101562 15.148438 17.773438 20.289062 23.160156 Z M 48.140625 31.539062 C 48.46875 32.429688 50.367188 37.609375 52.363281 43.066406 C 54.375 48.523438 55.984375 53.007812 55.972656 53.03125 C 55.945312 53.0625 50.460938 51.71875 43.789062 50.039062 L 31.648438 46.992188 L 28.710938 43.242188 C 27.097656 41.179688 25.757812 39.457031 25.742188 39.402344 C 25.71875 39.320312 47.15625 29.996094 47.453125 29.953125 C 47.507812 29.941406 47.8125 30.664062 48.140625 31.539062 Z M 54.441406 33.277344 C 56.765625 34.535156 58.679688 35.617188 58.71875 35.671875 C 58.761719 35.75 57.148438 49.617188 56.96875 50.585938 C 56.945312 50.777344 49.628906 30.980469 49.628906 30.707031 C 49.628906 30.652344 49.765625 30.679688 49.945312 30.789062 C 50.109375 30.898438 52.132812 32.019531 54.441406 33.277344 Z M 27.273438 44.0625 L 30.367188 48 L 30.148438 53.703125 C 30.007812 56.835938 29.898438 59.417969 29.886719 59.417969 C 29.777344 59.5 15.492188 61.070312 15.4375 61.003906 C 15.242188 60.796875 11.335938 46.304688 11.445312 46.210938 C 11.609375 46.03125 23.980469 40.070312 24.089844 40.101562 C 24.144531 40.113281 25.578125 41.90625 27.273438 44.0625 Z M 43.875 51.75 C 50.3125 53.375 55.6875 54.742188 55.808594 54.796875 C 56 54.878906 55.5625 55.6875 52.964844 59.953125 C 51.269531 62.726562 49.859375 65.023438 49.847656 65.039062 C 49.820312 65.078125 31.664062 59.59375 31.59375 59.527344 C 31.539062 59.472656 31.800781 52.117188 31.9375 50.066406 C 31.976562 49.382812 32.046875 48.808594 32.101562 48.808594 C 32.140625 48.808594 37.445312 50.132812 43.875 51.75 Z M 38.144531 63.246094 C 42.3125 64.503906 45.773438 65.570312 45.828125 65.609375 C 45.882812 65.664062 41.890625 66.132812 36.953125 66.679688 L 27.972656 67.648438 L 22.84375 65.078125 C 20.015625 63.65625 17.800781 62.492188 17.910156 62.480469 C 18.019531 62.46875 20.820312 62.140625 24.132812 61.742188 C 27.4375 61.332031 30.242188 61.003906 30.351562 60.992188 C 30.460938 60.976562 33.976562 62 38.144531 63.246094 Z M 38.144531 63.246094"
             )
         );
 
         this.path.addPath(
-            new Path2D("M1382 4728 l3 -93 90 0 90 0 3 93 3 92 -96 0 -96 0 3 -92z")
+            new Path2D("M 16.078125 22.449219 C 15.820312 22.820312 15.789062 23.804688 16.023438 24.035156 C 16.257812 24.265625 17.023438 24.242188 17.226562 23.992188 C 17.527344 23.640625 17.570312 22.722656 17.296875 22.421875 C 16.953125 22.054688 16.335938 22.066406 16.078125 22.449219 Z M 16.078125 22.449219")
         );
 
         this.path.addPath(
             new Path2D(
-                "M2862 4467 l-124 -124 26 -21 c59 -46 162 -36 219 22 61 61 70 164 19 225 -17 21 -18 21 -140 -102z"
+                "M 15.570312 25.511719 C 15.476562 25.632812 15.039062 27.890625 14.601562 30.53125 C 13.890625 34.90625 13.835938 35.355469 14.015625 35.640625 C 14.257812 36.011719 14.902344 36.066406 15.230469 35.75 C 15.339844 35.628906 15.476562 35.34375 15.515625 35.09375 C 16.007812 32.226562 16.953125 26.289062 16.953125 26.003906 C 16.953125 25.785156 16.882812 25.554688 16.789062 25.457031 C 16.554688 25.226562 15.789062 25.25 15.570312 25.511719 Z M 15.570312 25.511719"
             )
-        );
-
-        this.path.addPath(
-            new Path2D("M3290 4120 l0 -90 90 0 90 0 0 90 0 90 -90 0 -90 0 0 -90z")
-        );
-
-        this.path.addPath(
-            new Path2D("M1560 2820 l0 -90 90 0 90 0 0 90 0 90 -90 0 -90 0 0 -90z")
-        );
-
-        this.path.addPath(
-            new Path2D("M0 2470 l0 -90 90 0 90 0 0 90 0 90 -90 0 -90 0 0 -90z")
-        );
-
-        this.path.addPath(
-            new Path2D(
-                "M890 1755 l-125 -126 25 -19 c74 -58 211 -26 254 58 32 64 28 143 -12 191 -17 21 -18 21 -142 -104z"
-            )
-        );
-
-        this.path.addPath(
-            new Path2D("M4772 738 l3 -93 85 0 85 0 3 93 3 92 -91 0 -91 0 3 -92z")
-        );
-
-        this.path.addPath(
-            new Path2D("M2770 215 l0 -95 90 0 90 0 0 95 0 95 -90 0 -90 0 0 -95z")
         );
 
         this.velocity = { x: null, y: null };
@@ -426,7 +440,11 @@ class Asteriods {
 
         context.fillStyle = "#FFFFFF";
 
-        context.arc(this.x, this.y, 50, 0, Math.PI * 2, false);
+        context.translate(this.x , this.y)
+
+        context.fill(this.path)
+
+        context.resetTransform()
 
         context.fill();
     };
@@ -441,6 +459,16 @@ class Asteriods {
     };
 
     update = () => {
+
+        // if(playerPowerUps["push"]){
+        //     this.enemy = compTank
+
+        // } else if(compPowerUps["push"]){
+        //     this.enemy = player
+
+        //     // console.log(":A")
+        // }
+
         const diffX = this.x - this.enemy.x;
 
         const diffY = this.y - this.enemy.y;
@@ -606,8 +634,6 @@ class PowerUp extends Projectile {
                 sheildIntensity = 25
             }
 
-            this.caughtBy = player;
-
             return;
         }
 
@@ -620,8 +646,6 @@ class PowerUp extends Projectile {
         if (hypot < 100) {
             powerups.splice(powerups.indexOf(this), 1);
 
-            this.caughtBy = compTank;
-
             if(powerUpCreated){
                 return
             }
@@ -630,12 +654,12 @@ class PowerUp extends Projectile {
 
             setTimeout(() => {
                 compPowerUps = {
-                    poison: false,
-                    push: false,
-                    rocket: false,
-                    sheild: false,
+                    "poison": false,
+                    "push": false,
+                    "rocket": false,
+                    "sheild": false,
                 }; 
-            }, 500);
+            }, 10000);
 
             if(this.name === "sheild"){
                 sheildIntensity = 25
@@ -654,8 +678,6 @@ class PowerUp extends Projectile {
         // this.callback = callback;
 
         this.forTank = forTank;
-
-        this.caughtBy = null;
 
         this.path = null;
 
@@ -841,9 +863,13 @@ class Turret {
         context.restore();
     };
 
-    setRotation = () => {
-        const angle =
-            (Math.atan2(this.y - mousePos.y, this.x - mousePos.x) * 180) / Math.PI;
+    setRotation = (angle) => {
+        
+
+        if(!angle){
+            angle =
+                (Math.atan2(this.y - mousePos.y, this.x - mousePos.x) * 180) / Math.PI;
+        }
 
         this.rotation = angle;
     };
@@ -931,11 +957,16 @@ const spawnPowerUps = () => {
             x = Math.random() < 0.5 ? -radius : canvas.width + radius + 100;
 
             y = Math.random() * canvas.height;
+            
         } else {
             x = Math.random() * canvas.width;
-
+            
             y = Math.random() < 0.5 ? -radius : canvas.height + radius + 100;
         }
+        
+        const endX = canvas.width - x
+        
+        const endY = canvas.height - y
 
         const angle = Math.atan2(player.y - y, player.x - x);
 
@@ -951,22 +982,61 @@ const spawnPowerUps = () => {
         powerups.push(powerup);
 
         spawnPowerUps();
-    }, Math.random() * (500 - 1000) + 1000);
+    }, Math.random() * (1000 - 500) + 500);
 };
 
-// setInterval(() => {
-//     var angle = Math.atan2(player.y - compTank.y, player.x - compTank.x)
+setInterval(() => {
+    var xUpdate = 0, yUpdate = 0
 
-//     var velocity = {
-//         x: Math.cos(angle) * 2,
-//         y: Math.sin(angle) * 2
-//     }
+    try{
+        // var angle = Math.atan2(powerups[0].y - compTank.y , powerups[0].x - compTank.x)
+        const p = powerups[0]
 
-//     compTank.x += velocity.x
+        if(compTank.x > p.x){
+            xUpdate -= 2
+        }
+        
+        if(compTank.x < p.x){
+            xUpdate += 2
+        }
+        
 
-//     compTank.y += velocity.y
+        if(compTank.y > p.y){
+            yUpdate -= 2
+        }
+        
 
-// } , 10)
+        if(compTank.y < p.y){
+            yUpdate += 2
+        }
+        
+    } catch{
+        if(compTank.x > player.x + 50){
+            xUpdate -= 2
+        }
+        
+        if(compTank.x < player.x + 50){
+            xUpdate += 2
+        }
+        
+
+        if(compTank.y > player.y + 50){
+            yUpdate -= 2
+        }
+        
+
+        if(compTank.y < player.y + 50){
+            yUpdate += 2
+        }
+        
+        if(Math.abs(player.x - compTank.x) < 100 || Math.abs(player.y - compTank.y) < 100) return
+
+    }
+
+    compTank.x += xUpdate
+
+    compTank.y += yUpdate
+})
 
 var playerProgress = new PlayerProgress(30, 40, "Player 1");
 
@@ -982,13 +1052,13 @@ setInterval(() => {
     if (!inited) return;
 
     const angle = Math.atan2(
-        mousePos.y - player.turret.openingPos.y,
-        mousePos.x - player.turret.openingPos.x
+        player.y + 50 - compTank.turret.openingPos.y,
+        player.x + 50 - compTank.turret.openingPos.x
     );
 
     const velocity = {
-        x: Math.cos(angle) * 7,
-        y: Math.sin(angle) * 7,
+        x: Math.cos(angle) * compBall["speed"],
+        y: Math.sin(angle) * compBall["speed"],
     };
 
     if (compPowerUps["poison"]) {
@@ -1014,7 +1084,7 @@ setInterval(() => {
             )
         );
     }
-}, 400);
+}, 200);
 
 // Event listeners
 addEventListener("resize", () => {
@@ -1203,6 +1273,8 @@ addEventListener("keydown", (e) => {
                 player.y + 100
             ) {
                 rock.reqAnimation = true;
+
+                rock.enemy = compTank
             }
         }
 
@@ -1211,6 +1283,10 @@ addEventListener("keydown", (e) => {
         powerUpCreated = false;
 
         progressBar = null;
+    }
+
+    if(e.which === 82){
+        player.ammoHandler.reload()
     }
 });
 
@@ -1260,6 +1336,10 @@ addEventListener("mousedown", () => {
             clearInterval(intervalId);
         }
 
+        if(player.ammoHandler.currAmmo === 0){
+            return
+        }
+
         const angle = Math.atan2(
             mousePos.y - player.turret.openingPos.y,
             mousePos.x - player.turret.openingPos.x
@@ -1288,7 +1368,10 @@ addEventListener("mousedown", () => {
                 compTank
             )
         );
-    }, 60);
+
+        player.ammoHandler.decreaseAmmo()
+
+    }, 50);
 });
 
 var handleNumber = null;
@@ -1372,3 +1455,38 @@ setInterval(() => {
         }
     }
 } , 5)
+
+setInterval(() => {
+    const angle = Math.atan2(player.y - compTank.turret.y + 5 , player.x - compTank.turret.x + 80) * 180 / Math.PI;
+
+    compTank.turret.setRotation(angle)
+
+    if (compPowerUps["push"] ) {
+        for (let rock of asteriods) {
+            if (
+                rock.x + 50 > compTank.x &&
+                rock.y + 50 > compTank.y - 100
+                // rock.y &&
+                // compTank.y + 100
+            ) {
+                rock.reqAnimation = true;
+
+                rock.enemy = player
+
+                console.log("RAN@!")
+            }
+        }
+
+        compPowerUps["push"] = false;
+
+        powerUpCreated = false;
+
+        progressBar = null;
+    }
+
+    if(compPowerUps["rocket"]){
+        compBall["speed"] = 15
+    }
+
+} , 5)
+
