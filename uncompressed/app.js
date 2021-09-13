@@ -1,3 +1,4 @@
+// Initialize all required variables
 var powerUpCreated = false;
 var canvas = document.querySelector("canvas");
 var context = canvas.getContext("2d");
@@ -7,7 +8,6 @@ canvas.height = innerHeight;
 var progressBar = null;
 const asteriods = [];
 const scrollPos = { x: 0, y: 0 };
-const movingKeysActivated = {};
 var playerPowerUps = {
     poison: false,
     push: false,
@@ -36,8 +36,10 @@ var compBall = {
 }
 const explosives = [];
 
+// Ammo class
 class Ammo {
     constructor(needDraw=true){
+        // Make every variable global
         this.x = innerWidth - 300
 
         this.y = innerHeight - 200
@@ -51,16 +53,19 @@ class Ammo {
         this.currAmmo = 100
 
         this.needDraw = needDraw
-
+        
+        // Create a svg of the rifle 
         this.path = new Path2D("M 24.539062 0.125 C 24.140625 0.351562 22.664062 1.671875 22.101562 2.3125 C 19.746094 4.992188 18.359375 7.851562 17.714844 11.375 C 17.609375 11.984375 17.539062 13.054688 17.507812 14.863281 C 17.460938 17.039062 17.429688 17.480469 17.3125 17.480469 C 17.234375 17.480469 17.070312 17.585938 16.945312 17.726562 L 16.699219 17.960938 L 16.699219 43.742188 L 16.953125 43.9375 C 17.101562 44.054688 17.273438 44.140625 17.34375 44.140625 C 17.441406 44.140625 17.480469 44.277344 17.480469 44.578125 C 17.480469 44.941406 17.453125 45.019531 17.304688 45.019531 C 17.207031 45.019531 17.03125 45.117188 16.914062 45.242188 C 16.710938 45.460938 16.699219 45.554688 16.699219 47.5 C 16.699219 49.511719 16.699219 49.523438 16.945312 49.757812 L 17.179688 50 L 32.820312 50 L 33.054688 49.757812 C 33.300781 49.523438 33.300781 49.511719 33.300781 47.480469 C 33.300781 45.476562 33.300781 45.4375 33.078125 45.234375 C 32.949219 45.117188 32.773438 45.019531 32.6875 45.019531 C 32.558594 45.019531 32.519531 44.929688 32.519531 44.578125 C 32.519531 44.277344 32.558594 44.140625 32.65625 44.140625 C 32.726562 44.140625 32.898438 44.054688 33.046875 43.9375 L 33.300781 43.742188 L 33.300781 17.960938 L 33.054688 17.726562 C 32.929688 17.585938 32.765625 17.480469 32.6875 17.480469 C 32.570312 17.480469 32.539062 17.039062 32.492188 14.863281 C 32.441406 12.128906 32.351562 11.375 31.875 9.570312 C 31.035156 6.367188 28.992188 3.09375 26.503906 0.957031 C 25.546875 0.136719 25.34375 0.0078125 25 0.0078125 C 24.863281 0.0078125 24.65625 0.0585938 24.539062 0.125 Z M 26.21875 3.046875 C 28.171875 5.058594 29.460938 7.246094 30.203125 9.824219 C 30.683594 11.476562 30.78125 12.296875 30.828125 14.960938 L 30.878906 17.480469 L 19.121094 17.480469 L 19.171875 14.960938 C 19.21875 12.296875 19.316406 11.476562 19.796875 9.824219 C 20.28125 8.125 21.074219 6.476562 22.148438 4.953125 C 22.773438 4.054688 24.773438 1.953125 25 1.953125 C 25.078125 1.953125 25.632812 2.441406 26.21875 3.046875 Z M 31.640625 30.8125 L 31.640625 42.480469 L 18.359375 42.480469 L 18.359375 19.140625 L 31.640625 19.140625 Z M 30.859375 44.578125 L 30.859375 45.019531 L 19.140625 45.019531 L 19.140625 44.140625 L 30.859375 44.140625 Z M 31.640625 47.507812 L 31.640625 48.339844 L 18.359375 48.339844 L 18.359375 46.679688 L 31.640625 46.679688 Z M 31.640625 47.507812")
     }
 
     draw = () => {
+
+        // Check if the tank wants to render to screen (in case of computer tank)
         if(!this.needDraw){            
             return
         }
-
         
+        // Update x and y
         this.x = innerWidth - 400
         
         this.y = innerHeight - 100
@@ -69,6 +74,7 @@ class Ammo {
 
         var color = ""
 
+        // Use a specific color according to the ammo left
         if(this.currAmmo >= 80){
             color = "#A3BE8C"
         } else if(this.currAmmo >= 60){
@@ -81,8 +87,11 @@ class Ammo {
             color = "#BF616A"
         }
 
+        // Set the fill Style
+
         context.fillStyle = color
 
+        // Draw 10 rifle icons side by side
         for(let i = 0; i < Math.ceil(this.currAmmo / 10); i++){
             context.translate(this.x , this.y)
 
@@ -93,6 +102,7 @@ class Ammo {
             context.resetTransform()
         }
 
+        // Add a text to show the user that the tank is reloading
         if(this.isReloading){
             context.fillText("Reloading..." , x , this.y + 85)
         }
@@ -105,11 +115,14 @@ class Ammo {
 
     reload = () => {
         setTimeout(() => {
+            // Fill the ammo after 3 seconds
+
             this.currAmmo = 100
 
             this.isReloading = false
         } , 3000)
 
+        // Set reloading to true
         this.isReloading = true
 
     } 
@@ -119,8 +132,10 @@ class Ammo {
 
 class CanvasBorderShadowController {
     constructor() {
+        // Get the shadow element
         this.shadow = document.querySelector(".box-shadow");
 
+        // Set width and height according to the screen
         this.shadow.style.width = innerWidth + "px";
 
         this.shadow.style.height = innerHeight + "px";
@@ -132,16 +147,20 @@ class CanvasBorderShadowController {
 
     show = (reverse, called = true) => {
         if (!reverse) {
+            // Remove the unfade class
             try {
                 this.shadow.classList.remove("unfade");
             } catch (err) { }
 
+            // Fade away slowly
             this.shadow.classList.add("fade");
 
+            // Completely fade on finsihing of the animation
             setTimeout(() => {
                 this.shadow.style.opacity = 0;
             }, 500);
 
+            // Check if the shadow is visible and needs to be faded 
             if (called) {
                 setTimeout(() => {
                     if (this.shadow.style.opacity == 0) {
@@ -184,12 +203,17 @@ class Progress {
     }
 
     draw = () => {
+
+        // Set fillStyle
         context.fillStyle = "white";
 
+        // Fill the progress bar
         context.fillRect(0, innerHeight - 10, this.width, 10);
 
+        // Decrease the width of the bar gradually
         this.width -= this.velocity;
 
+        // Check if the width goes 0
         if (this.width <= 0) {
             progressBar = null;
 
@@ -210,28 +234,34 @@ class PlayerProgress {
     }
 
     draw = () => {
+        // Get the width of each pixel in bar
         this.innerBarWidth = 0.03 * this.playerHealth;
 
+        // Set fonts and line width
         context.fillStyle = "#D8DEE9";
 
         context.font = "20px comfortaa";
 
         context.lineWidth = -1;
 
+        // Fill te player's health text
         context.fillText(this.name, this.x, this.y);
 
         context.fillText(`${this.playerHealth} / 10000`, this.x, this.y + 50);
 
+        // Fill the background bar
         context.fillStyle = "#3B4252";
 
         context.fillRect(this.x, this.y + 80, 300, 5);
 
+        // Fill the inner rectangle (which shows the current health)
         context.fillStyle = "#4C566A";
 
         context.fillRect(this.x, this.y + 80, this.innerBarWidth, 5);
     };
 
     decreaseHealth = (decrease) => {
+        // Check if the tank does not possess a sheild 
         if(this.name == "Computer 1" && compPowerUps["sheild"]){
             return
         }
@@ -265,16 +295,18 @@ class Tank {
     }
 
     draw = () => {
-        this.radius = 9;
-
+        // Draw turret
         this.turret.draw();
 
+        // Draw ammo handler
         if(this.ammoHandler !== null){
             this.ammoHandler.draw()
         }
 
-
+        // Draw health bar
         this.healthBar.draw();
+
+        // Update turret positions
 
         this.turret.x = this.x;
 
@@ -288,6 +320,7 @@ class Tank {
 
         var widthPerPixel, heightPerPixel;
 
+        // Draw a tank
         context.save();
 
         context.beginPath();
@@ -410,15 +443,8 @@ class Tank {
 
     };
 
-    drawLine = (x , y) => {
-        context.lineTo(x , y)
-
-        context.moveTo(x , y)
-
-        
-    }
-
     newValues = (original, key1, key2) => {
+        // Returns a new value for the next position ofthe tank on key press
         var n =
             original -
             (this.keyActivated[key1] ? this.speed : 0) +
@@ -434,6 +460,7 @@ class Asteriods {
         this.y = y;
         this.path = new Path2D();
 
+        // Asteriod 2D path
         this.path.addPath(
             new Path2D(
                 "M 38.117188 2.023438 C 37.117188 2.761719 34.261719 4.882812 31.757812 6.726562 C 29.273438 8.585938 27.054688 10.1875 26.835938 10.296875 C 26.632812 10.40625 23.75 11.648438 20.4375 13.042969 C 17.132812 14.453125 14.34375 15.679688 14.246094 15.765625 C 14.082031 15.929688 9.570312 44.773438 9.570312 45.679688 C 9.570312 46.085938 13.78125 61.617188 14.082031 62.304688 C 14.179688 62.535156 15.96875 63.492188 20.929688 65.980469 L 27.671875 69.34375 L 39.085938 68.101562 C 48.601562 67.0625 50.558594 66.800781 50.75 66.609375 C 50.875 66.484375 52.582031 63.738281 54.5625 60.5 L 58.148438 54.617188 L 59.28125 45.253906 C 59.910156 40.101562 60.429688 35.640625 60.429688 35.34375 C 60.429688 35.039062 59.445312 30.09375 58.242188 24.335938 C 57.039062 18.59375 56.054688 13.835938 56.054688 13.78125 C 56.054688 13.699219 42.039062 1.929688 40.824219 0.984375 C 40.605469 0.820312 40.320312 0.683594 40.195312 0.683594 C 40.058594 0.683594 39.128906 1.285156 38.117188 2.023438 Z M 39.335938 12.933594 C 39.304688 12.960938 30.039062 10.789062 29.476562 10.625 C 29.40625 10.59375 31.59375 8.914062 34.328125 6.875 L 39.304688 3.1875 L 39.347656 8.039062 C 39.359375 10.703125 39.359375 12.90625 39.335938 12.933594 Z M 47.824219 8.953125 C 51.242188 11.796875 54.058594 14.203125 54.101562 14.289062 C 54.15625 14.453125 48.125 26.921875 47.988281 26.921875 C 47.945312 26.933594 46.359375 23.992188 44.476562 20.414062 L 41.015625 13.890625 L 41.015625 3.242188 L 41.328125 3.515625 C 41.492188 3.664062 44.421875 6.109375 47.824219 8.953125 Z M 32.992188 13.152344 C 35.902344 13.851562 38.265625 14.464844 38.253906 14.507812 C 38.226562 14.5625 35.246094 17.101562 31.625 20.152344 L 25.019531 25.703125 L 23.335938 23.953125 C 17.445312 17.882812 16.28125 16.609375 16.515625 16.5 C 18.171875 15.75 27.328125 11.90625 27.480469 11.894531 C 27.589844 11.894531 30.0625 12.453125 32.992188 13.152344 Z M 43.382812 21.890625 C 45.351562 25.621094 46.730469 28.382812 46.664062 28.453125 C 46.59375 28.519531 41.753906 30.625 35.914062 33.140625 L 25.292969 37.695312 L 25.292969 37.0625 C 25.292969 36.722656 25.390625 34.371094 25.511719 31.855469 L 25.730469 27.273438 L 26.085938 26.976562 C 26.289062 26.8125 29.4375 24.144531 33.085938 21.070312 C 36.734375 17.992188 39.785156 15.476562 39.851562 15.460938 C 39.9375 15.460938 41.523438 18.347656 43.382812 21.890625 Z M 56.738281 25.183594 C 57.710938 29.789062 58.488281 33.578125 58.476562 33.578125 C 58.460938 33.59375 56.382812 32.46875 53.867188 31.089844 C 51.171875 29.613281 49.289062 28.507812 49.289062 28.382812 C 49.289062 28.148438 54.867188 16.664062 54.933594 16.75 C 54.960938 16.773438 55.78125 20.578125 56.738281 25.183594 Z M 20.289062 23.160156 L 24.0625 27.109375 L 24.0625 27.808594 C 24.046875 28.929688 23.554688 38.429688 23.5 38.484375 C 23.378906 38.59375 11.457031 44.3125 11.414062 44.269531 C 11.375 44.214844 15.296875 18.609375 15.394531 18.335938 C 15.476562 18.101562 15.148438 17.773438 20.289062 23.160156 Z M 48.140625 31.539062 C 48.46875 32.429688 50.367188 37.609375 52.363281 43.066406 C 54.375 48.523438 55.984375 53.007812 55.972656 53.03125 C 55.945312 53.0625 50.460938 51.71875 43.789062 50.039062 L 31.648438 46.992188 L 28.710938 43.242188 C 27.097656 41.179688 25.757812 39.457031 25.742188 39.402344 C 25.71875 39.320312 47.15625 29.996094 47.453125 29.953125 C 47.507812 29.941406 47.8125 30.664062 48.140625 31.539062 Z M 54.441406 33.277344 C 56.765625 34.535156 58.679688 35.617188 58.71875 35.671875 C 58.761719 35.75 57.148438 49.617188 56.96875 50.585938 C 56.945312 50.777344 49.628906 30.980469 49.628906 30.707031 C 49.628906 30.652344 49.765625 30.679688 49.945312 30.789062 C 50.109375 30.898438 52.132812 32.019531 54.441406 33.277344 Z M 27.273438 44.0625 L 30.367188 48 L 30.148438 53.703125 C 30.007812 56.835938 29.898438 59.417969 29.886719 59.417969 C 29.777344 59.5 15.492188 61.070312 15.4375 61.003906 C 15.242188 60.796875 11.335938 46.304688 11.445312 46.210938 C 11.609375 46.03125 23.980469 40.070312 24.089844 40.101562 C 24.144531 40.113281 25.578125 41.90625 27.273438 44.0625 Z M 43.875 51.75 C 50.3125 53.375 55.6875 54.742188 55.808594 54.796875 C 56 54.878906 55.5625 55.6875 52.964844 59.953125 C 51.269531 62.726562 49.859375 65.023438 49.847656 65.039062 C 49.820312 65.078125 31.664062 59.59375 31.59375 59.527344 C 31.539062 59.472656 31.800781 52.117188 31.9375 50.066406 C 31.976562 49.382812 32.046875 48.808594 32.101562 48.808594 C 32.140625 48.808594 37.445312 50.132812 43.875 51.75 Z M 38.144531 63.246094 C 42.3125 64.503906 45.773438 65.570312 45.828125 65.609375 C 45.882812 65.664062 41.890625 66.132812 36.953125 66.679688 L 27.972656 67.648438 L 22.84375 65.078125 C 20.015625 63.65625 17.800781 62.492188 17.910156 62.480469 C 18.019531 62.46875 20.820312 62.140625 24.132812 61.742188 C 27.4375 61.332031 30.242188 61.003906 30.351562 60.992188 C 30.460938 60.976562 33.976562 62 38.144531 63.246094 Z M 38.144531 63.246094"
@@ -456,6 +483,8 @@ class Asteriods {
     }
 
     draw = () => {
+
+        // Draw the 2D path
         context.beginPath();
 
         context.fillStyle = "#FFFFFF";
@@ -470,6 +499,8 @@ class Asteriods {
     };
 
     setVelocity = () => {
+
+        // Set the velocity
         const angle = Math.atan2(this.enemy.y - this.y, this.enemy.x - this.x);
 
         this.velocity = {
@@ -480,14 +511,7 @@ class Asteriods {
 
     update = () => {
 
-        // if(playerPowerUps["push"]){
-        //     this.enemy = compTank
-
-        // } else if(compPowerUps["push"]){
-        //     this.enemy = player
-
-        // }
-
+        // Check if the asteriod hit the enemy
         const diffX = this.x - this.enemy.x;
 
         const diffY = this.y - this.enemy.y;
@@ -495,17 +519,22 @@ class Asteriods {
         const hypot = Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
 
         if (hypot < 12) {
+            // Reset request
             this.reqAnimation = false;
 
+            // Remove it from the array
             asteriods.splice(asteriods.indexOf(this), 1);
 
+            // Create some explosives on hit
             createExplosive(this.x + 25, this.y + 25);
 
+            // Decrease the enemy's health
             this.enemy.healthBar.decreaseHealth(1500)
 
             return;
         }
 
+        // Update velocity
         this.setVelocity();
 
         this.x += this.velocity.x;
@@ -523,6 +552,8 @@ class Star {
     }
 
     draw = () => {
+
+        // Fill a circle (arc) as a star
         context.beginPath();
 
         context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
@@ -537,6 +568,7 @@ class Star {
     };
 
     update = (rotation) => {
+        // Move the star rotation
         context.save();
 
         context.rotate(0);
@@ -563,6 +595,8 @@ class Projectile {
     }
 
     draw = () => {
+
+        // Create a circle (arc) for our turret shots
         context.save();
 
         context.beginPath();
@@ -579,6 +613,8 @@ class Projectile {
     };
 
     update = () => {
+
+        // Update the positions
         this.x += this.velocity.x;
 
         this.y += this.velocity.y;
@@ -587,6 +623,7 @@ class Projectile {
     check = () => {
         if(paused) return
 
+        // Check if projectile hit an enemy
         if (
             this.x > this.enemy.x &&
             this.y > this.enemy.y &&
@@ -595,6 +632,7 @@ class Projectile {
         ) {
             projectiles.splice(projectiles.indexOf(this), 1);
 
+            // Check if the shot was a deadly poison
             if (this.isPoison) {
                 this.enemy.healthBar.decreaseHealth(100);
             } else {
@@ -625,6 +663,7 @@ class PowerUp extends Projectile {
 
     check = () => {
         
+        // Check if any tank takes the powerup
         var xDiff = this.x - player.x;
         
         var yDiff = this.y - player.y;
@@ -632,14 +671,18 @@ class PowerUp extends Projectile {
         var hypot = Math.abs(Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2)));
 
         if (hypot < 100) {
+
+            // Remove it from the screen
             powerups.splice(powerups.indexOf(this), 1);
             
+            // Check if the powerup exists
             if(powerUpCreated){
                 return
             }
 
             powerUpCreated = true;
             
+            // Create a progress bar to show the duration of the power up
             progressBar = new Progress(500, () => {
                 powerUpCreated = false;
 
@@ -653,6 +696,7 @@ class PowerUp extends Projectile {
 
             playerPowerUps[this.name] = true;
 
+            // If it is a sheild, reset the intensity of the sheild
             if(this.name === "sheild"){
                 sheildIntensity = 25
             }
@@ -660,6 +704,7 @@ class PowerUp extends Projectile {
             return;
         }
 
+        // Same here, but for computer tank
         xDiff = this.x - compTank.x;
 
         yDiff = this.y - compTank.y;
@@ -700,13 +745,12 @@ class PowerUp extends Projectile {
     init = (name, forTank) => {
         this.name = name;
 
-        // this.callback = callback;
-
         this.forTank = forTank;
 
         this.path = null;
 
         switch (this.name) {
+            // Create svgs specifically fro each power up
             case "poison":
                 this.path = new Path2D();
 
@@ -788,6 +832,7 @@ class PowerUp extends Projectile {
 
         var y = this.y;
 
+        // Get the new coordinates for a fixed rotation
         var coordinates = this.generateCoordinates(
             x + 30,
             y + 30,
@@ -796,6 +841,7 @@ class PowerUp extends Projectile {
             this.rotation
         );
 
+        // Draw and fill a hexagon
         context.strokeStyle = "#4C566A";
 
         context.beginPath();
@@ -817,6 +863,8 @@ class PowerUp extends Projectile {
         context.fillStyle = "#88C0D0"
 
         context.fill()
+
+        // Draw the powerup icon inside the hexagon
 
         context.translate(this.x + 29, this.y + 29);
 
@@ -854,6 +902,8 @@ class PowerUp extends Projectile {
     };
 
     update = () => {
+
+        // Update x and y
         this.x += this.velocity.x;
 
         this.y += this.velocity.y;
@@ -869,6 +919,7 @@ class Turret {
     }
 
     draw = () => {
+        // Draw a rectangle as a turret
         context.save();
 
         context.beginPath();
@@ -889,17 +940,18 @@ class Turret {
     };
 
     setRotation = (angle) => {
-        
-
+        // Set the rotation of the turret, the direction towards which it is facing
         if(!angle){
             angle =
                 (Math.atan2(this.y - mousePos.y, this.x - mousePos.x) * 180) / Math.PI;
         }
 
+        // Make angle global
         this.rotation = angle;
     };
 
     updatePos = () => {
+        // Get the end of the turret after the rotation
         const newPoints = this.getRotatedPoints(
             this.x + 80,
             this.y,
@@ -908,6 +960,7 @@ class Turret {
             -5
         );
 
+        // Update opening x and y pos
         this.openingPos.x = newPoints.x;
 
         this.openingPos.y = newPoints.y;
@@ -923,16 +976,21 @@ class Turret {
     };
 
     radians = (deg) => {
+        // Convert degrees to radians
         return deg * 0.0174533;
     };
 }
 
 setTimeout(() => {
+    // Create stars on canvas
     for (let i = 0; i < 200; i++) {
+
+        // Get any random position on the screen
         const x = Math.random() * (canvas.width + 1000) - (canvas.width + 1000) / 2;
 
         const y = Math.random() * (canvas.width + 1000) - (canvas.width + 1000) / 2;
 
+        // Create a new star
         stars.push(
             new Star(
                 x,
@@ -948,38 +1006,30 @@ setTimeout(() => {
 
 var paused = false
 
-const increaseBalls = () => {
-    superBalls = { speed: 10, color: "#88C0D0" };
-};
+// const decreaseHealth = (powerup) => {
+//     powerEl.classList.add("unfade");
 
-const enablePoison = () => {
-    // powerUpsUnlocked["poison"] = true;
-};
+//     setTimeout(() => {
+//         powerEl.classList.remove("unfade");
 
-const decreaseHealth = (powerup) => {
-    powerEl.classList.add("unfade");
-
-    setTimeout(() => {
-        powerEl.classList.remove("unfade");
-
-        powerEl.classList.add("fade");
-    }, 10000);
-};
+//         powerEl.classList.add("fade");
+//     }, 10000);
+// };
 
 const spawnPowerUps = () => {
     setTimeout(() => {
+
+        // Check if the user hasnt paused or yet not started
         if(!inited || paused){
             return
         }
 
+        // Check if the powerups are already created (one at time)
         if (powerUpCreated) {
             spawnPowerUps();
 
             return;
         }
-
-
-        // alert("Spawning")
 
         const radius = 29;
 
@@ -995,11 +1045,8 @@ const spawnPowerUps = () => {
             
             y = Math.random() < 0.5 ? -radius : canvas.height + radius + 100;
         }
-        
-        const endX = canvas.width - x
-        
-        const endY = canvas.height - y
 
+        // Set the velocity of the powerup
         const angle = Math.atan2(player.y - y, player.x - x);
 
         const velocity = {
@@ -1007,6 +1054,7 @@ const spawnPowerUps = () => {
             y: Math.sin(angle) * 3,
         };
 
+        // Create new powerup
         const powerup = new PowerUp(x, y, null, null, velocity);
 
         powerup.init(names[Math.floor(Math.random() * names.length)], player);
@@ -1025,9 +1073,9 @@ setInterval(() => {
     var xUpdate = 0, yUpdate = 0
 
     try{
-        // var angle = Math.atan2(powerups[0].y - compTank.y , powerups[0].x - compTank.x)
         const p = powerups[0]
 
+        // Get whether the computer tank should move up , down , right or left?
         if(compTank.x > p.x){
             xUpdate -= 1.5
         }
@@ -1069,11 +1117,14 @@ setInterval(() => {
 
     }
 
+    // Update x and y accordingly
     compTank.x += xUpdate
 
     compTank.y += yUpdate
 })
 
+
+// Create tanks, ammo handler and player progress
 var playerProgress = new PlayerProgress(30, 40, "Player 1");
 
 var ammoHandler = new Ammo()
@@ -1090,23 +1141,27 @@ setInterval(() => {
     if(!inited || paused){
         return
     }
-
+    
+    // Check if the tank ran out of rifles
     if(compAmmo.currAmmo === 0 || compAmmo.isReloading){
         compAmmo.reload()
 
         return
     }
 
+    // Get the angle between two points 
     const angle = Math.atan2(
         player.y + 50 - compTank.turret.openingPos.y,
         player.x + 50 - compTank.turret.openingPos.x
     );
 
+    // Set velocity
     const velocity = {
         x: Math.cos(angle) * compBall["speed"],
         y: Math.sin(angle) * compBall["speed"],
     };
 
+    // Check if the tank has poison powerup
     if (compPowerUps["poison"]) {
         projectiles.push(
             new Projectile(
@@ -1131,6 +1186,7 @@ setInterval(() => {
         );
     }
 
+    // Decrease ammo
     compAmmo.decreaseAmmo()
 }, 100);
 
@@ -1146,6 +1202,7 @@ addEventListener("resize", () => {
 });
 
 addEventListener("mousemove", (e) => {
+    // Update x and y pos
     mousePos.x = e.clientX;
 
     mousePos.y = e.clientY;
@@ -1165,32 +1222,19 @@ const createExplosive = (x, y, count=50) => {
     }
 };
 
-// setInterval(() => {
-//     if(!inited) return
-
-//     const angle = Math.atan2(player.y - compTank.y , player.x - compTank.x)
-
-//     const velocity = {
-//         x: Math.cos(angle) * 6,
-//         y: Math.sin(angle) * 6
-//     }
-
-//     compTank.x += velocity.x
-
-//     compTank.y += velocity.y
-// } , 20)
-
-// Game loop
-
 var sheildIntensity = 0;
 
+// Game loop
 const animate = () => {
     handleNumber = requestAnimationFrame(animate);
 
+    // Fill a opaque rect for motion blur
     context.fillStyle = "rgba(46 , 52 , 64 , 0.4)";
 
     context.fillRect(0, 0, canvas.width, canvas.height);
-    
+
+
+    // Draw projectiles or rifle shots
     for (let projectile of projectiles) {
         projectile.draw();
         
@@ -1208,16 +1252,22 @@ const animate = () => {
         }
 
         if(!paused){
+            // Draw explosions
             for (let explosion of explosives) {
                 explosion.draw();
                 
                 explosion.update();
+
+                if(explosion.x < 0 || explosion.y < 0 || explosion.x > innerWidth || canvas.y  > innerHeight){
+                    explosives.splice(explosives.indexOf(explosion))
+                }
             }
         }
         
         
         finished = false;
         
+        // Draw powerups
         for (let powerup of powerups) {
             powerup.draw();
             
@@ -1226,6 +1276,13 @@ const animate = () => {
             powerup.check();
             
             powerup.setRotation(hexRotation);
+
+            // Check if they are outside the screen
+            if(powerup.x < 0 || powerup.y < 0 || powerup.x > innerWidth || canvas.y  > innerHeight){
+
+                // remove them
+                powerups.splice(powerups.indexOf(powerup))
+            }
         }
         
         for (let asteriod of asteriods) {
@@ -1233,6 +1290,10 @@ const animate = () => {
             
             if (asteriod.reqAnimation) {
                 asteriod.update();
+            }
+
+            if(asteriod.x < 0 || asteriod.y < 0 || asteriod.x > innerWidth || canvas.y  > innerHeight){
+                asteriods.splice(asteriods.indexOf(asteriod))
             }
         }
         
@@ -1275,9 +1336,9 @@ const animate = () => {
             
             sheildIntensity -= 0.05;
         }
-        player.x = player.newValues(player.x, 65, 68);
+        player.x = Math.max(player.newValues(player.x, 65, 68) , 0);
         
-        player.y = player.newValues(player.y, 87, 83);
+        player.y = Math.max(player.newValues(player.y, 87, 83) , 0);
         
         player.turret.setRotation();
         
@@ -1306,9 +1367,8 @@ addEventListener("mouseup", () => {
 });
 
 addEventListener("keydown", (e) => {
+    // Set the player's movement key to true
     player.keyActivated[e.which] = true;
-
-    movingKeysActivated[e.which] = true;
 
     if ([40, 39, 38, 37].includes(e.which)) {
         e.preventDefault();
@@ -1316,6 +1376,7 @@ addEventListener("keydown", (e) => {
         return;
     }
 
+    // Check if the player has almighty push powerup and key pressed is Q
     if (playerPowerUps["push"] && e.which === 81) {
         for (let rock of asteriods) {
             if (
@@ -1344,8 +1405,6 @@ addEventListener("keydown", (e) => {
 
 addEventListener("keyup", (e) => {
     player.keyActivated[e.which] = false;
-
-    movingKeysActivated[e.which] = false;
 });
 
 addEventListener("mousedown", () => {
@@ -1401,6 +1460,8 @@ addEventListener("mousedown", () => {
 var handleNumber = null;
 
 const init = () => {
+
+    // Reset all defaults
     projectiles = [];
 
     powerups = [];
@@ -1431,6 +1492,8 @@ const init = () => {
         element.style.display = "none";
     }, 500);
 
+
+    // Create asteriods
     for (let i = 0; i < 5; i++) {
         asteriods.push(
             new Asteriods(
@@ -1443,15 +1506,20 @@ const init = () => {
 
 stars = [];
 
-
+// Check for visibility change
 addEventListener("visibilitychange", () => {
-    if (document.visibilityState !== "visible") {
+    if (document.visibilityState !== "visible" && inited) {
         cancelAnimationFrame(handleNumber);
 
         document.querySelector(".gamePaused").style.display = "block";
 
     }
 });
+
+document.addEventListener("mouseleave" , () => {
+    // Reset mouse down on leave
+    isMouseDown = false
+})
 
 document.querySelector(".resume").addEventListener("click", () => {
     animate();
@@ -1577,9 +1645,6 @@ setInterval(() => {
         } , 500)
         
         return
-
-
     }
 
-    
 })
