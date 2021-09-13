@@ -8,8 +8,13 @@ var progressBar = null;
 const asteriods = [];
 const scrollPos = { x: 0, y: 0 };
 const movingKeysActivated = {};
-var playerPowerUps = {"poison": false, "push": false, "rocket": false, "sheild": false};
-var compPowerUps = {"poison": false, "push": false, "rocket": false, "sheild": false};
+var playerPowerUps = {
+    poison: false,
+    push: false,
+    rocket: false,
+    sheild: false,
+};
+var compPowerUps = { poison: false, push: false, rocket: false, sheild: false };
 var projectiles,
     powerups,
     names = ["push", "poison", "rocket", "sheild"],
@@ -18,7 +23,34 @@ var projectiles,
     mousePos = { x: null, y: null },
     superBalls,
     inited = false;
+var playerBall = {
+    "radius": 4,
+    "speed": 7,
+    "color": "#D8DEE9"
+}
 const explosives = [];
+
+class Ammo {
+    constructor(){
+        this.x = innerWidth - 300
+
+        this.y = innerHeight - 100
+
+        this.isReloading = false
+
+        this.currAmmo = 100
+    }
+
+    draw = () => {
+        this.x = innerWidth - 300
+
+        this.y = innerHeight - 100
+
+        context.fillText(`Ammo: ${this.currAmmo} / 100` , this.x , this.y)
+    }
+
+
+}
 
 class CanvasBorderShadowController {
     constructor() {
@@ -140,7 +172,7 @@ class PlayerProgress {
 }
 
 class Tank {
-    constructor(x, y, speed, healthBar) {
+    constructor(x, y, speed, healthBar, ammoHandler) {
         this.x = x;
 
         this.y = y;
@@ -153,16 +185,18 @@ class Tank {
 
         this.keyActivated = {};
 
-        this.pixelMap = [
-            [1, 1, 1, 1, 14, 1, 14, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 15, 1, 15, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 2, 3, 3, 3, 3, 4, 1, 1, 1, 1, 1, 1],
-            [1, 5, 1, 1, 1, 1, 1, 1, 3, 4, 1, 1, 1, 1],
-            [1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 6, 1, 1, 1],
-            [1, 1, 7, 3, 3, 3, 3, 3, 3, 8, 1, 1, 1, 1],
-            [1, 1, 9, 10, 10, 10, 10, 10, 10, 12, 1, 1, 1, 1],
-            [1, 1, 13, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  
-        ];
+        this.ammoHandler = ammoHandler
+
+        // this.pixelMap = [
+        //     [1, 1, 1, 1, 14, 1, 14, 1, 1, 1, 1, 1, 1, 1],
+        //     [1, 1, 1, 1, 15, 1, 15, 1, 1, 1, 1, 1, 1, 1],
+        //     [1, 1, 2, 3, 3, 3, 3, 4, 1, 1, 1, 1, 1, 1],
+        //     [1, 5, 1, 1, 1, 1, 1, 1, 3, 4, 1, 1, 1, 1],
+        //     [1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 6, 1, 1, 1],
+        //     [1, 1, 7, 3, 3, 3, 3, 3, 3, 8, 1, 1, 1, 1],
+        //     [1, 1, 9, 10, 10, 10, 10, 10, 10, 12, 1, 1, 1, 1],
+        //     [1, 1, 13, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        // ];
 
         this.speed = speed;
 
@@ -173,6 +207,11 @@ class Tank {
         this.radius = 9;
 
         this.turret.draw();
+
+        if(this.ammoHandler !== null){
+            this.ammoHandler.draw()
+        }
+
 
         this.healthBar.draw();
 
@@ -192,122 +231,131 @@ class Tank {
 
         context.beginPath();
 
-        for (let i = 0; i < this.pixelMap.length; i++) {
-            for (let key of this.pixelMap[i]) {
-                widthPerPixel = 13;
+        widthPerPixel = 15;
 
-                heightPerPixel = 13;
+        heightPerPixel = 15;
 
-                context.moveTo(x, y);
+        x += widthPerPixel * 2 
 
-                switch (key) {
-                    case 2:
-                        context.lineTo(x - widthPerPixel, y + heightPerPixel);
+        y += heightPerPixel * 2
 
-                        context.moveTo(x, y);
+        context.moveTo(x , y)
 
-                        context.lineTo(x + widthPerPixel, y);
+        x -= widthPerPixel 
 
-                        break;
+        y += heightPerPixel
 
-                    case 3:
-                        context.lineTo(x + widthPerPixel, y);
+        context.lineTo(x , y)
 
-                        break;
+        y += heightPerPixel
 
-                    case 4:
-                        context.lineTo(x + widthPerPixel , y + heightPerPixel)
-                        
-                        break;
+        context.lineTo(x , y)
 
-                    case 5:
-                        context.lineTo(x, y + heightPerPixel);
+        x += widthPerPixel 
 
-                        break;
+        y += heightPerPixel
 
-                    case 6:
-                        context.lineTo(x - widthPerPixel , y + heightPerPixel)
+        context.lineTo(x , y)
 
-                        break;
+        for(let i = 0; i < 10; i++){
+            x += widthPerPixel 
 
-                    case 7:
-                        context.lineTo(x - widthPerPixel , y + heightPerPixel / 2)
-                        
-                        context.moveTo(x , y)    
-
-                        context.lineTo(x + widthPerPixel , y)
-
-                        break;
-
-                    case 8:
-                        context.lineTo(x + widthPerPixel , y + heightPerPixel / 2)    
-
-                        break;
-
-                    case 9:
-                        context.moveTo(x + widthPerPixel / 2 + 5 , y + heightPerPixel / 2)
-
-                        context.arc(x , y + 5 , 10 , 0 , Math.PI * 2 , false)
-
-                        context.moveTo(x , y - 5)
-
-                        context.lineTo(x + widthPerPixel , y - 5)
-
-                        break;
-
-                    case 10:
-                        context.moveTo(x , y - 5)
-
-                        context.lineTo(x + widthPerPixel , y - 5)
-
-                        break;
-
-                    case 12:
-                        context.moveTo(x + widthPerPixel / 2 + 5 , y + heightPerPixel / 2)
-
-                        context.arc(x , y + 5 , 10 , 0 , Math.PI * 2 , false)
-
-                        break;
-
-                    case 14:
-                        context.moveTo(x - widthPerPixel / 2 + 2 , y)
-
-                        context.arc(x , y , 5 , -Math.PI , 0 , false)
-
-                        break
-
-                    case 15:
-                        var currX = x - widthPerPixel / 2 + 2
-
-                        var currY = y - widthPerPixel
-
-                        context.moveTo(currX , currY)
-
-                        context.lineTo(currX , currY + heightPerPixel * 2)
-
-                        context.moveTo(currX + widthPerPixel - 4 , currY + heightPerPixel * 2)
-
-                        context.lineTo(currX + widthPerPixel - 4 , currY)
-                }
-
-                x += widthPerPixel;
-            }
-
-            y += heightPerPixel;
-
-            x = this.x;
-
-            this.radius = this.radius - 5;
+            context.lineTo(x , y)
         }
 
-        context.closePath();
+        x += widthPerPixel / 2
+
+        y -= heightPerPixel / 2
+
+        context.lineTo(x , y)
+
+        x -= widthPerPixel + widthPerPixel / 2 - 5
+
+        y -= heightPerPixel + heightPerPixel / 2 - 5
+
+        context.lineTo(x , y)
+
+        x -= widthPerPixel 
+
+        context.lineTo(x , y)
+
+        x -= parseInt(widthPerPixel + widthPerPixel / 2) - 2
+
+        y -= parseInt(heightPerPixel + heightPerPixel / 2) - 2
+
+        context.lineTo(x , y)
+
+        for(let i = 0; i < 7; i++){
+            x -= widthPerPixel 
+
+            context.lineTo(x , y)
+        }
 
         context.strokeStyle = "white";
 
+        context.lineWidth = 1
+
         context.stroke();
 
+        context.fillStyle = "#D8DEE9"
+
+        context.fill()
+
+        context.closePath()
+
+        context.beginPath()
+
+        y += heightPerPixel * 4 - heightPerPixel / 2
+
+        x = this.x + 30
+
+        context.moveTo(x , y)
+
+        for(let i = 0; i < 10; i++){
+            x += widthPerPixel 
+
+            context.lineTo(x , y)
+        }
+
+        x -= widthPerPixel + 10
+
+        context.arc(x , y , 25 , 0 , 0.5 * Math.PI , false)
+
+        context.lineTo(x - widthPerPixel , y + 25)
+
+        y += 25
+
+        for(let i = 0; i < 6; i++){
+            x -= widthPerPixel
+
+            context.lineTo(x - widthPerPixel , y)
+        }
+
+        context.arc(x  , y - 49 , 25 , 0.5 * Math.PI , Math.PI)
+
+        context.strokeStyle = "white";
+
+        context.lineWidth = 1
+
+        context.stroke();
+
+        context.fillStyle = "#D8DEE9"
+
+        context.fill()
+
         context.restore();
+        
+        context.closePath();
+
     };
+
+    drawLine = (x , y) => {
+        context.lineTo(x , y)
+
+        context.moveTo(x , y)
+
+        
+    }
 
     newValues = (original, key1, key2) => {
         var n =
@@ -393,13 +441,13 @@ class Asteriods {
     };
 
     update = () => {
-        const diffX = this.x - this.enemy.x
-        
-        const diffY = this.y - this.enemy.y
-        
-        const hypot = Math.sqrt(Math.pow(diffX , 2) + Math.pow(diffY , 2))
-                
-        if(hypot < 12){
+        const diffX = this.x - this.enemy.x;
+
+        const diffY = this.y - this.enemy.y;
+
+        const hypot = Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
+
+        if (hypot < 12) {
             this.reqAnimation = false;
 
             asteriods.splice(asteriods.indexOf(this), 1);
@@ -462,7 +510,7 @@ class Projectile {
         this.color = color;
         this.velocity = velocity;
         this.enemy = enemy;
-        this.isPoison = poison;
+        this.isPoison = color === "#A3BE8C";
     }
 
     draw = () => {
@@ -497,9 +545,9 @@ class Projectile {
             projectiles.splice(projectiles.indexOf(this), 1);
 
             if (this.isPoison) {
-                this.enemy.healthBar.decreaseHealth(200);
+                this.enemy.healthBar.decreaseHealth(100);
             } else {
-                this.enemy.healthBar.decreaseHealth(50);
+                this.enemy.healthBar.decreaseHealth(10);
             }
 
             if (this.enemy == player) {
@@ -525,24 +573,38 @@ class PowerUp extends Projectile {
     };
 
     check = () => {
+        
         var xDiff = this.x - player.x;
-
+        
         var yDiff = this.y - player.y;
 
         var hypot = Math.abs(Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2)));
 
-        if (hypot < 60) {
+        if (hypot < 100) {
             powerups.splice(powerups.indexOf(this), 1);
+            
+            if(powerUpCreated){
+                return
+            }
 
             powerUpCreated = true;
-
+            
             progressBar = new Progress(500, () => {
                 powerUpCreated = false;
 
-                playerPowerUps = {"poison": false, "push": false, "rocket": false, "sheild": false}; // need
+                playerPowerUps = {
+                    poison: false,
+                    push: false,
+                    rocket: false,
+                    sheild: false,
+                }; 
             });
 
-            playerPowerUps[this.name] = true
+            playerPowerUps[this.name] = true;
+
+            if(this.name === "sheild"){
+                sheildIntensity = 25
+            }
 
             this.caughtBy = player;
 
@@ -555,16 +617,30 @@ class PowerUp extends Projectile {
 
         hypot = Math.abs(Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2)));
 
-        if (hypot < 70) {
+        if (hypot < 100) {
             powerups.splice(powerups.indexOf(this), 1);
 
             this.caughtBy = compTank;
 
-            compPowerUps[this.name] = true
+            if(powerUpCreated){
+                return
+            }
+
+            compPowerUps[this.name] = true;
 
             setTimeout(() => {
-                compPowerUps = {"poison": false, "push": false, "rocket": false, "sheild": false}; //need
-            } , 500)
+                compPowerUps = {
+                    poison: false,
+                    push: false,
+                    rocket: false,
+                    sheild: false,
+                }; 
+            }, 500);
+
+            if(this.name === "sheild"){
+                sheildIntensity = 25
+            }
+
 
             powerUpCreated = true;
 
@@ -654,7 +730,9 @@ class PowerUp extends Projectile {
                 break;
 
             case "sheild":
-                this.path = new Path2D("M 14.734375 0.0390625 C 13.257812 0.453125 2.9375 3.59375 2.804688 3.667969 C 2.703125 3.734375 2.566406 3.855469 2.496094 3.945312 L 2.375 4.109375 L 2.375 11.0625 C 2.375 16.453125 2.390625 18.105469 2.449219 18.410156 C 3.007812 21.359375 5.351562 24.210938 9.53125 27.03125 C 11.53125 28.371094 14.523438 30 15 30 C 15.476562 30 18.46875 28.371094 20.46875 27.03125 C 24.648438 24.210938 26.992188 21.359375 27.550781 18.410156 C 27.609375 18.105469 27.625 16.453125 27.625 11.0625 L 27.625 4.109375 L 27.503906 3.945312 C 27.433594 3.855469 27.296875 3.734375 27.195312 3.667969 C 26.964844 3.53125 15.410156 0.0625 15.085938 0.03125 C 14.960938 0.015625 14.800781 0.0234375 14.734375 0.0390625 Z M 20.46875 3.4375 L 25.898438 5.070312 L 25.898438 11.289062 C 25.898438 15.339844 25.875 17.671875 25.835938 17.96875 C 25.703125 18.949219 25.164062 20.144531 24.40625 21.164062 C 23.917969 21.808594 22.75 23.023438 21.984375 23.679688 C 20.519531 24.9375 18.601562 26.21875 16.4375 27.40625 C 15.351562 27.996094 15.054688 28.136719 14.917969 28.101562 C 14.554688 28.007812 11.898438 26.484375 10.632812 25.648438 C 8.554688 24.265625 6.664062 22.582031 5.59375 21.164062 C 4.835938 20.144531 4.296875 18.949219 4.164062 17.96875 C 4.125 17.671875 4.101562 15.339844 4.101562 11.289062 L 4.101562 5.070312 L 9.480469 3.453125 C 12.433594 2.5625 14.894531 1.828125 14.941406 1.820312 C 14.988281 1.816406 17.472656 2.542969 20.46875 3.4375 Z M 20.46875 3.4375")
+                this.path = new Path2D(
+                    "M 14.734375 0.0390625 C 13.257812 0.453125 2.9375 3.59375 2.804688 3.667969 C 2.703125 3.734375 2.566406 3.855469 2.496094 3.945312 L 2.375 4.109375 L 2.375 11.0625 C 2.375 16.453125 2.390625 18.105469 2.449219 18.410156 C 3.007812 21.359375 5.351562 24.210938 9.53125 27.03125 C 11.53125 28.371094 14.523438 30 15 30 C 15.476562 30 18.46875 28.371094 20.46875 27.03125 C 24.648438 24.210938 26.992188 21.359375 27.550781 18.410156 C 27.609375 18.105469 27.625 16.453125 27.625 11.0625 L 27.625 4.109375 L 27.503906 3.945312 C 27.433594 3.855469 27.296875 3.734375 27.195312 3.667969 C 26.964844 3.53125 15.410156 0.0625 15.085938 0.03125 C 14.960938 0.015625 14.800781 0.0234375 14.734375 0.0390625 Z M 20.46875 3.4375 L 25.898438 5.070312 L 25.898438 11.289062 C 25.898438 15.339844 25.875 17.671875 25.835938 17.96875 C 25.703125 18.949219 25.164062 20.144531 24.40625 21.164062 C 23.917969 21.808594 22.75 23.023438 21.984375 23.679688 C 20.519531 24.9375 18.601562 26.21875 16.4375 27.40625 C 15.351562 27.996094 15.054688 28.136719 14.917969 28.101562 C 14.554688 28.007812 11.898438 26.484375 10.632812 25.648438 C 8.554688 24.265625 6.664062 22.582031 5.59375 21.164062 C 4.835938 20.144531 4.296875 18.949219 4.164062 17.96875 C 4.125 17.671875 4.101562 15.339844 4.101562 11.289062 L 4.101562 5.070312 L 9.480469 3.453125 C 12.433594 2.5625 14.894531 1.828125 14.941406 1.820312 C 14.988281 1.816406 17.472656 2.542969 20.46875 3.4375 Z M 20.46875 3.4375"
+                );
         }
     };
 
@@ -664,14 +742,14 @@ class PowerUp extends Projectile {
         var y = this.y;
 
         var coordinates = this.generateCoordinates(
-            x + this.radius,
-            y + this.radius,
+            x + 30,
+            y + 30,
             6,
-            this.radius,
+            30,
             this.rotation
         );
 
-        context.save()
+        context.strokeStyle = "#4C566A";
 
         context.beginPath();
 
@@ -683,33 +761,27 @@ class PowerUp extends Projectile {
             }
         });
 
-        console.log(coordinates)
-
-        context.fillStyle = "blue";
-
-        context.fill();
-        
-        context.strokeStyle = "yellow";
-        
-        context.lineWidth = 1;
-        
-        context.stroke();
-        
         context.closePath();
 
-        context.restore()
+        context.lineWidth = 2
+        
+        context.stroke();
 
-        // context.translate(this.x + 29, this.y + 29);
+        context.fillStyle = "#88C0D0"
 
-        // context.rotate(rotation * 2);
+        context.fill()
 
-        // context.translate(-15, -15);
+        context.translate(this.x + 29, this.y + 29);
 
-        // context.fillStyle = "orange";
+        context.rotate(rotation * 2);
 
-        // context.fill(this.path);
+        context.translate(-15, -15);
 
-        // context.resetTransform();
+        context.fillStyle = "#2E3440";
+
+        context.fill(this.path);
+
+        context.resetTransform();
     };
 
     generateCoordinates = (centerX, centerY, numberOfSides, radius, rotation) => {
@@ -730,6 +802,7 @@ class PowerUp extends Projectile {
                 ),
             });
         }
+        
         return coordinates;
     };
 
@@ -761,7 +834,7 @@ class Turret {
 
         context.fillStyle = "white";
 
-        context.closePath()
+        context.closePath();
 
         context.fill();
 
@@ -878,7 +951,7 @@ const spawnPowerUps = () => {
         powerups.push(powerup);
 
         spawnPowerUps();
-    }, Math.random() * (500- 1000) + 1000);
+    }, Math.random() * (500 - 1000) + 1000);
 };
 
 // setInterval(() => {
@@ -897,11 +970,13 @@ const spawnPowerUps = () => {
 
 var playerProgress = new PlayerProgress(30, 40, "Player 1");
 
-var player = new Tank(250, 400, 7, playerProgress);
+var ammoHandler = new Ammo()
+
+var player = new Tank(250, 400, 7, playerProgress , ammoHandler);
 
 var compProgress = new PlayerProgress(innerWidth - 350, 50, "Computer 1");
 
-var compTank = new Tank(1400, 400, 7, compProgress);
+var compTank = new Tank(1400, 400, 7, compProgress, null);
 
 setInterval(() => {
     if (!inited) return;
@@ -915,8 +990,6 @@ setInterval(() => {
         x: Math.cos(angle) * 7,
         y: Math.sin(angle) * 7,
     };
-
-    // Sheild whose power will decrease by time
 
     if (compPowerUps["poison"]) {
         projectiles.push(
@@ -945,9 +1018,9 @@ setInterval(() => {
 
 // Event listeners
 addEventListener("resize", () => {
-    canvas.width = innerWidth
+    canvas.width = innerWidth;
 
-    canvas.height = innerHeight
+    canvas.height = innerHeight;
 
     controller.shadow.style.width = innerWidth + "px";
 
@@ -991,7 +1064,7 @@ const createExplosive = (x, y) => {
 
 // Game loop
 
-var sheildIntensity = 0
+var sheildIntensity = 0;
 
 const animate = () => {
     handleNumber = requestAnimationFrame(animate);
@@ -999,99 +1072,106 @@ const animate = () => {
     context.fillStyle = "rgba(46 , 52 , 64 , 0.4)";
 
     context.fillRect(0, 0, canvas.width, canvas.height);
-
-    player.x = player.newValues(player.x, 65, 68)
-
-    player.y = player.newValues(player.y, 87, 83)
-
-    player.turret.setRotation()
-
+    
     for (let projectile of projectiles) {
-        projectile.draw()
-
-        projectile.update()
-
-        if (projectile.x < 0 || projectile.y < 0 || projectile.x > innerWidth || projectile.y > innerHeight) {
-            projectiles.splice(projectiles.indexOf(projectile), 1)
-        }
-        projectile.check()
-    }
-
-    for (let explosion of explosives) {
-        explosion.draw()
-
-        explosion.update()
-    }
-
-    finished = false
-
-    player.draw();
-
-    compTank.draw()
-
-    for (let powerup of powerups) {
-        powerup.draw()
-
-        powerup.update()
-
-        powerup.check()
-
-        powerup.setRotation(hexRotation)
-
-    }
-
-    for(let asteriod of asteriods){
-        asteriod.draw()
-
-        if(asteriod.reqAnimation){
-            asteriod.update()
-        }
-    }
-
-    for(let star of stars){
-        star.draw()
-
-        star.update(rotation)
-    }
-
-    rotation += 0.001
-
-    hexRotation += 1
-
-    if(progressBar !== null){
-        progressBar.draw()
-    }
-
-    if(playerPowerUps["sheild"]){
-        context.save()
-
-        context.beginPath()
-
-        context.arc(player.x + 70 , player.y + 45 , 100 , 0 , Math.PI * 2 , false)
-
-        context.strokeStyle = "#4C566A"
-
-        context.shadowColor = "#4C566A";
-
-        context.shadowBlur = sheildIntensity;
+        projectile.draw();
         
-        context.shadowOffsetX = 0;
+        projectile.update();
         
-        context.shadowOffsetY = 0;
+        if (
+            projectile.x < 0 ||
+            projectile.y < 0 ||
+            projectile.x > innerWidth ||
+            projectile.y > innerHeight
+            ) {
+                projectiles.splice(projectiles.indexOf(projectile), 1);
+            }
+            projectile.check();
+        }
+        
+        for (let explosion of explosives) {
+            explosion.draw();
+            
+            explosion.update();
+        }
+        
+        finished = false;
+        
+        for (let powerup of powerups) {
+            powerup.draw();
+            
+            powerup.update();
+            
+            powerup.check();
+            
+            powerup.setRotation(hexRotation);
+        }
+        
+        for (let asteriod of asteriods) {
+            asteriod.draw();
+            
+            if (asteriod.reqAnimation) {
+                asteriod.update();
+            }
+        }
+        
+        for (let star of stars) {
+            star.draw();
+            
+            star.update(rotation);
+        }
+        
+        rotation += 0.001;
+        
+        hexRotation += 1;
+        
+        if (progressBar !== null) {
+            progressBar.draw();
+        }
+        
+        if (playerPowerUps["sheild"]) {
+            context.save();
+            
+            context.beginPath();
+            
+            context.arc(player.x + 70, player.y + 45, 100, 0, Math.PI * 2, false);
+            
+            context.strokeStyle = "#4C566A";
+            
+            context.shadowColor = "#4C566A";
+            
+            context.shadowBlur = sheildIntensity;
+            
+            context.shadowOffsetX = 0;
+            
+            context.shadowOffsetY = 0;
+            
+            context.stroke();
+            
+            context.closePath();
+            
+            context.restore();
+            
+            sheildIntensity -= 0.05;
+        }
+        player.x = player.newValues(player.x, 65, 68);
+        
+        player.y = player.newValues(player.y, 87, 83);
+        
+        player.turret.setRotation();
+        
+        player.draw();
 
-        context.stroke()
-
-        context.closePath()
-
-        context.restore()
-
-        sheildIntensity -= 0.05
-    }
-};
-
-var progressiveId = null;
-
-var xInterval, yInterval;
+        // if(compTank.healthBar.playerHealth < 0){
+        //     alert("You won!")
+        // } 
+        
+        compTank.draw();
+    };
+    
+    var progressiveId = null;
+    
+    var xInterval, yInterval;
 
 var intervalId = 0;
 
@@ -1186,16 +1266,16 @@ addEventListener("mousedown", () => {
         );
 
         const velocity = {
-            x: Math.cos(angle) * 7,
-            y: Math.sin(angle) * 7,
+            x: Math.cos(angle) * playerBall["speed"],
+            y: Math.sin(angle) * playerBall["speed"],
         };
 
-        var color = ""
+        var color = "";
 
-        if(playerPowerUps["poison"]){
-            color = "#A3BE8C"
+        if (playerPowerUps["poison"]) {
+            color = "#A3BE8C";
         } else {
-            color ="#D8DEE9"
+            color = playerBall["color"];
         }
 
         projectiles.push(
@@ -1211,7 +1291,7 @@ addEventListener("mousedown", () => {
     }, 60);
 });
 
-var handleNumber = null
+var handleNumber = null;
 
 const init = () => {
     projectiles = [];
@@ -1259,21 +1339,36 @@ stars = [];
 
 init();
 
-addEventListener("visibilitychange" , () => {
-    if(document.visibilityState !== "visible"){
-        cancelAnimationFrame(handleNumber)
+addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") {
+        cancelAnimationFrame(handleNumber);
 
-        document.querySelector(".gamePaused").style.display = "block"
+        document.querySelector(".gamePaused").style.display = "block";
+
     }
-})
+});
 
+document.querySelector(".resume").addEventListener("click", () => {
+    animate();
 
-document.querySelector(".resume").addEventListener("click" , () => {
-    animate()
-
-    document.querySelector(".gamePaused").classList.add("fade")
+    document.querySelector(".gamePaused").classList.add("fade");
 
     setTimeout(() => {
-        document.querySelector(".gamePaused").style.display = "none"
-    } , 500)
-})
+        document.querySelector(".gamePaused").style.display = "none";
+    }, 500);
+});
+
+
+setInterval(() => {
+    if(playerPowerUps["rocket"]){
+        playerBall["color"] = "#88C0D0"
+
+        playerBall["speed"] = 10
+    } else {
+        playerBall = {
+            "radius": 4,
+            "speed": 7,
+            "color": "#D8DEE9"
+        }
+    }
+} , 5)
